@@ -1,3 +1,4 @@
+// Borrowed from http://members.shaw.ca/el.supremo/MagickWand/
 // Last updated 2008/11/04 10:53
 
 // A simple example equivalent to
