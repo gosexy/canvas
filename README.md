@@ -15,27 +15,35 @@ Pull the last stable version from github:
 
 After pulling, the source will be in:
 
-    $ cd $GOPATH/src/github.com/gocanvas/canvas
+    $ find $GOPATH/src/github.com/xiam/gocanvas/canvas
 
 ## Updating
 
-You can use `go get -u -a` to update all installed packages.
+You can use `go get -u github.com/xiam/gocanvas/canvas` to update canvas to the latest version.
 
 ## Usage example
+
+Write an example.go file
  
+    package main
+
     import "github.com/xiam/gocanvas/canvas"
 
-    canvas := NewCanvas()
+    func main() {
+      cv := canvas.NewCanvas()
 
-    opened := canvas.Open("examples/input/example.png")
+      opened := cv.Open("examples/input/example.png")
 
-    if opened {
-      canvas.SetQuality(90)
-      canvas.Write("examples/output/example.jpg")
+      if opened {
+        cv.SetQuality(90)
+        cv.Write("examples/output/example.jpg")
+      }
+
+      cv.Destroy()
     }
 
-    canvas.Destroy()
+And then run it with `go run example.go`
 
 ## Documentation
 
-For full documentation run `go doc canvas`
+For full documentation run `go doc github.com/xiam/gocanvas/canvas`
