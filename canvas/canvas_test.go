@@ -4,7 +4,7 @@ import "testing"
 import "math"
 
 func TestOpenWrite(t *testing.T) {
-  canvas := NewCanvas()
+  canvas := New()
 
   opened := canvas.Open("examples/input/example.png")
 
@@ -17,7 +17,7 @@ func TestOpenWrite(t *testing.T) {
 }
 
 func TestResize(t *testing.T) {
-  canvas := NewCanvas()
+  canvas := New()
 
   opened := canvas.Open("examples/input/example.png")
 
@@ -30,7 +30,7 @@ func TestResize(t *testing.T) {
 }
 
 func TestBlank(t *testing.T) {
-  canvas := NewCanvas()
+  canvas := New()
 
   canvas.SetBackgroundColor("#00ff00")
 
@@ -44,7 +44,7 @@ func TestBlank(t *testing.T) {
 }
 
 func TestDrawLine(t *testing.T) {
-  canvas := NewCanvas()
+  canvas := New()
 
   canvas.SetBackgroundColor("#000000")
 
@@ -63,7 +63,7 @@ func TestDrawLine(t *testing.T) {
 }
 
 func TestDrawCircle(t *testing.T) {
-  canvas := NewCanvas()
+  canvas := New()
 
   canvas.SetBackgroundColor("#000000")
 
@@ -94,7 +94,7 @@ func TestDrawCircle(t *testing.T) {
 }
 
 func TestDrawRectangle(t *testing.T) {
-  canvas := NewCanvas()
+  canvas := New()
 
   canvas.SetBackgroundColor("#000000")
 
@@ -116,7 +116,7 @@ func TestDrawRectangle(t *testing.T) {
 }
 
 func TestDrawEllipse(t *testing.T) {
-  canvas := NewCanvas()
+  canvas := New()
 
   success := canvas.Blank(400, 400)
 
@@ -142,4 +142,80 @@ func TestDrawEllipse(t *testing.T) {
   }
 
   canvas.Destroy()
+}
+
+func TestBlur(t *testing.T) {
+  canvas := New()
+  defer canvas.Destroy()
+
+  opened := canvas.Open("examples/input/example.png")
+
+  if (opened) {
+    canvas.Blur(0.1)
+    canvas.Write("examples/output/example-blur.png")
+  }
+}
+
+func TestModulate(t *testing.T) {
+  canvas := New()
+  defer canvas.Destroy()
+
+  opened := canvas.Open("examples/input/example.png")
+
+  if (opened) {
+    canvas.SetBrightness(-0.5)
+    canvas.SetHue(0.2)
+    canvas.SetSaturation(0.9)
+    canvas.Write("examples/output/example-modulate.png")
+  }
+}
+
+func TestAdaptive(t *testing.T) {
+
+  canvas := New()
+  defer canvas.Destroy()
+
+  opened := canvas.Open("examples/input/example.png")
+
+  if (opened) {
+    canvas.AdaptiveBlur(1.2)
+    canvas.AdaptiveResize(100, 100)
+    canvas.Write("examples/output/example-adaptive.png")
+  }
+}
+
+func TestNoise(t *testing.T) {
+  canvas := New()
+  defer canvas.Destroy()
+
+  opened := canvas.Open("examples/input/example.png")
+
+  if (opened) {
+    canvas.AddNoise()
+    canvas.Write("examples/output/example-noise.png")
+  }
+}
+
+func TestChop(t *testing.T) {
+  canvas := New()
+  defer canvas.Destroy()
+
+  opened := canvas.Open("examples/input/example.png")
+
+  if (opened) {
+    canvas.Chop(0, 0, 100, 50)
+    canvas.Write("examples/output/example-chop.png")
+  }
+}
+
+func TestCrop(t *testing.T) {
+  canvas := New()
+  defer canvas.Destroy()
+
+  opened := canvas.Open("examples/input/example.png")
+
+  if (opened) {
+    canvas.Crop(100, 200, 200, 100)
+    canvas.Write("examples/output/example-crop.png")
+  }
 }

@@ -30,7 +30,8 @@ Write an example.go file
     import "github.com/xiam/gocanvas/canvas"
 
     func main() {
-      cv := canvas.NewCanvas()
+      cv := canvas.New()
+      defer cv.Destroy()
 
       opened := cv.Open("examples/input/example.png")
 
@@ -38,8 +39,6 @@ Write an example.go file
         cv.SetQuality(90)
         cv.Write("examples/output/example.jpg")
       }
-
-      cv.Destroy()
     }
 
 And then run it with `go run example.go`

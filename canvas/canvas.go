@@ -108,6 +108,15 @@ func (cv Canvas) Resize(width int, height int) (bool) {
   return true
 }
 
+// Adaptively changes the size of the canvas, returns true on success.
+func (cv Canvas) AdaptiveResize(width int, height int) (bool) {
+  status := C.MagickAdaptiveResizeImage(cv.wand, C.size_t(width), C.size_t(height))
+  if status == C.MagickFalse {
+    return false
+  }
+  return true
+}
+
 // Changes the compression quality of the canvas. Ranges from 1 (lowest) to 100 (highest).
 func (cv Canvas) SetQuality(quality int) (bool) {
   status := C.MagickSetImageCompressionQuality(cv.wand, C.size_t(quality))
@@ -264,8 +273,98 @@ func (cv Canvas) Blank(width int, height int) (bool) {
   return true
 }
 
+// Convolves the canvas with a Gaussian function given its standard deviation.
+func (cv Canvas) Blur(sigma float64) (bool) {
+  status := C.MagickBlurImage(cv.wand, C.double(0), C.double(sigma))
+  if status == C.MagickFalse {
+    return false
+  }
+  return true
+}
+
+// Adaptively blurs the image by blurring less intensely near the edges and more intensely far from edges.
+func (cv Canvas) AdaptiveBlur(sigma float64) (bool) {
+  status := C.MagickAdaptiveBlurImage(cv.wand, C.double(0), C.double(sigma))
+  if status == C.MagickFalse {
+    return false
+  }
+  return true
+}
+
+// Adds random noise to the canvas.
+func (cv Canvas) AddNoise() (bool) {
+  status := C.MagickAddNoiseImage(cv.wand, C.GaussianNoise)
+  if status == C.MagickFalse {
+    return false
+  }
+  return true
+}
+
+// Removes a region of a canvas and collapses the canvas to occupy the removed portion.
+func (cv Canvas) Chop(x int, y int, width int, height int) (bool) {
+  status := C.MagickChopImage(cv.wand, C.size_t(width), C.size_t(height), C.ssize_t(x), C.ssize_t(y))
+  if status == C.MagickFalse {
+    return false
+  }
+  return true
+}
+
+// Extracts a region from the canvas.
+func (cv Canvas) Crop(x int, y int, width int, height int) (bool) {
+  status := C.MagickCropImage(cv.wand, C.size_t(width), C.size_t(height), C.ssize_t(x), C.ssize_t(y))
+  if status == C.MagickFalse {
+    return false
+  }
+  return true
+}
+
+// Adjusts the canvas's brightness given a factor (-1.0 thru 1.0)
+func (cv Canvas) SetBrightness(factor float64) (bool) {
+
+  factor = math.Max(-1, factor)
+  factor = math.Min(1, factor)
+
+  status := C.MagickModulateImage(cv.wand, C.double(100 + factor*100.0), C.double(100), C.double(100))
+  
+  if status == C.MagickFalse {
+    return false
+  }
+
+  return true
+}
+
+// Adjusts the canvas's saturation given a factor (-1.0 thru 1.0)
+func (cv Canvas) SetSaturation(factor float64) (bool) {
+
+  factor = math.Max(-1, factor)
+  factor = math.Min(1, factor)
+
+  status := C.MagickModulateImage(cv.wand, C.double(100), C.double(100 + factor*100.0), C.double(100))
+  
+  if status == C.MagickFalse {
+    return false
+  }
+
+  return true
+}
+
+// Adjusts the canvas's hue given a factor (-1.0 thru 1.0)
+func (cv Canvas) SetHue(factor float64) (bool) {
+
+  factor = math.Max(-1, factor)
+  factor = math.Min(1, factor)
+
+  status := C.MagickModulateImage(cv.wand, C.double(100), C.double(100), C.double(100 + factor*100.0))
+  
+  if status == C.MagickFalse {
+    return false
+  }
+
+  return true
+}
+
 // Returns a new canvas object.
-func NewCanvas() *Canvas {
+func New() *Canvas {
   cv := &Canvas{}
   
   cv.Init()
