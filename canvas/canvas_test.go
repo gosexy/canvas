@@ -32,10 +32,10 @@ func TestResize(t *testing.T) {
 func TestBlank(t *testing.T) {
   canvas := New()
 
-  canvas.SetBackgroundColor("#00ff00")
+  canvas.SetBackgroundColor("#00ff00");
 
   success := canvas.Blank(400, 400)
-
+  
   if success {
     canvas.Write("examples/output/example-blank.png")
   }
@@ -43,7 +43,92 @@ func TestBlank(t *testing.T) {
   canvas.Destroy()
 }
 
+func TestSettersAndGetters(t *testing.T) {
+
+  canvas := New()
+  
+  success := canvas.Blank(400, 400)
+  if success != true {
+    t.Errorf("Could not create blank image.")
+  }
+
+  const backgroundColor  = "#112233"
+
+  canvas.SetBackgroundColor(backgroundColor);
+
+  if gotBackgroundColor := canvas.BackgroundColor(); gotBackgroundColor != backgroundColor {
+    t.Errorf("Got %s, expecting %s", gotBackgroundColor, backgroundColor)
+  }
+  
+  const strokeAntialias = true
+
+  canvas.SetStrokeAntialias(strokeAntialias)
+
+  if gotStrokeAntialias := canvas.StrokeAntialias(); gotStrokeAntialias != strokeAntialias {
+    t.Errorf("Got %t, expecting %t.", gotStrokeAntialias, strokeAntialias)
+  }
+  
+  const strokeWidth     = 2.0
+
+  canvas.SetStrokeWidth(strokeWidth)
+
+  if gotStrokeWidth := canvas.StrokeWidth(); gotStrokeWidth != strokeWidth {
+    t.Errorf("Got %f, expecting %f.", gotStrokeWidth, strokeWidth)
+  }
+  
+  const strokeOpacity   = 1.0
+
+  canvas.SetStrokeOpacity(strokeOpacity)
+
+  if gotStrokeOpacity := canvas.StrokeOpacity(); gotStrokeOpacity != strokeOpacity {
+    t.Errorf("Got %f, expecting %f.", gotStrokeOpacity, strokeOpacity)
+  }
+  
+  strokeLineCap := STROKE_SQUARE_CAP
+
+  canvas.SetStrokeLineCap(strokeLineCap)
+
+  if gotStrokeLineCap := canvas.StrokeLineCap(); gotStrokeLineCap != strokeLineCap {
+    t.Errorf("Got %d, expecting %d.", gotStrokeLineCap, strokeLineCap)
+  }
+  
+  strokeLineJoin := STROKE_ROUND_JOIN
+
+  canvas.SetStrokeLineJoin(strokeLineJoin)
+
+  if gotStrokeLineJoin := canvas.StrokeLineJoin(); gotStrokeLineJoin != strokeLineJoin {
+    t.Errorf("Got %d, expecting %d.", gotStrokeLineJoin, strokeLineJoin)
+  }
+  
+  const fillColor = "#112233"
+
+  canvas.SetFillColor(fillColor);
+
+  if gotFillColor := canvas.FillColor(); gotFillColor != fillColor {
+    t.Errorf("Got %s, expecting %s", gotFillColor, fillColor)
+  }
+  
+  const strokeColor = "#112233"
+
+  canvas.SetStrokeColor(strokeColor);
+
+  if gotStrokeColor := canvas.StrokeColor(); gotStrokeColor != strokeColor {
+    t.Errorf("Got %s, expecting %s", gotStrokeColor, strokeColor)
+  }
+  
+  const quality = 76
+
+  canvas.SetQuality(quality);
+
+  if gotQuality := canvas.Quality(); gotQuality != quality {
+    t.Errorf("Got %d, expecting %d", gotQuality, quality)
+  }
+  
+  canvas.Destroy()
+}
+
 func TestDrawLine(t *testing.T) {
+
   canvas := New()
 
   canvas.SetBackgroundColor("#000000")
@@ -51,6 +136,7 @@ func TestDrawLine(t *testing.T) {
   success := canvas.Blank(400, 400)
 
   if success {
+
     canvas.Translate(200, 200)
     canvas.SetStrokeWidth(10)
     canvas.SetStrokeColor("#ffffff")

@@ -33,6 +33,8 @@ import "C"
 
 import "math"
 
+import "fmt"
+
 var (
   STROKE_BUTT_CAP       = C.ButtCap
   STROKE_ROUND_CAP      = C.RoundCap
@@ -63,6 +65,25 @@ type Canvas struct {
   width string
   height string
 
+}
+
+// Private: returns wand's hexadecimal color.
+func getPixelHexColor(p *C.PixelWand) (string) {
+  var rgb [3]float64
+
+  rgb[0] = float64(C.PixelGetRed(p))
+  rgb[1] = float64(C.PixelGetGreen(p))
+  rgb[2] = float64(C.PixelGetBlue(p))
+
+  return fmt.Sprintf("#%02x%02x%02x", int(rgb[0]*255.0), int(rgb[1]*255.0), int(rgb[2]*255.0))
+}
+
+// Private: returns MagickTrue or MagickFalse 
+func magickBoolean(value bool) (C.MagickBooleanType) {
+  if value == true {
+    return C.MagickTrue
+  }
+  return C.MagickFalse
 }
 
 // Initializes the canvas environment.
@@ -126,6 +147,11 @@ func (cv Canvas) SetQuality(quality int) (bool) {
   return true
 }
 
+// Returns the compression quality of the canvas. Ranges from 1 (lowest) to 100 (highest).
+func (cv Canvas) Quality() (int) {
+  return int(C.MagickGetImageCompressionQuality(cv.wand))
+}
+
 /*
 // Sets canvas's foreground color.
 func (cv Canvas) SetColor(color string) (bool) {
@@ -137,7 +163,7 @@ func (cv Canvas) SetColor(color string) (bool) {
 }
 */
 
-// Sets canvas's background color.
+// Sets canvas' background color.
 func (cv Canvas) SetBackgroundColor(color string) (bool) {
   C.PixelSetColor(cv.bg, C.CString(color))
   status := C.MagickSetImageBackgroundColor(cv.wand, cv.bg)
@@ -147,9 +173,23 @@ func (cv Canvas) SetBackgroundColor(color string) (bool) {
   return true
 }
 
-// Sets antialiasing for the current drawing surface.
+// Returns canvas' background color.
+func (cv Canvas) BackgroundColor() (string) {
+  return getPixelHexColor(cv.bg)
+}
+
+// Sets antialiasing setting for the current drawing stroke.
 func (cv Canvas) SetStrokeAntialias(value bool) {
-  C.DrawSetStrokeAntialias(cv.drawing, C.MagickTrue)
+  C.DrawSetStrokeAntialias(cv.drawing, magickBoolean(value))
+}
+
+// Returns antialiasing setting for the current drawing stroke.
+func (cv Canvas) StrokeAntialias() (bool) {
+  value := C.DrawGetStrokeAntialias(cv.drawing)
+  if (value == C.MagickTrue) {
+    return true
+  }
+  return false
 }
 
 // Sets the width of the stroke on the current drawing surface.
@@ -157,9 +197,19 @@ func (cv Canvas) SetStrokeWidth(value float64) {
   C.DrawSetStrokeWidth(cv.drawing, C.double(value))
 }
 
+// Returns the width of the stroke on the current drawing surface.
+func (cv Canvas) StrokeWidth() (float64) {
+  return float64(C.DrawGetStrokeWidth(cv.drawing))
+}
+
 // Sets the opacity of the stroke on the current drawing surface.
 func (cv Canvas) SetStrokeOpacity(value float64) {
   C.DrawSetStrokeOpacity(cv.drawing, C.double(value))
+}
+
+// Returns the opacity of the stroke on the current drawing surface.
+func (cv Canvas) StrokeOpacity() (float64) {
+  return float64(C.DrawGetStrokeOpacity(cv.drawing))
 }
 
 // Sets the type of the line cap on the current drawing surface.
@@ -167,9 +217,19 @@ func (cv Canvas) SetStrokeLineCap(value int) {
   C.DrawSetStrokeLineCap(cv.drawing, C.LineCap(value))
 }
 
+// Returns the type of the line cap on the current drawing surface.
+func (cv Canvas) StrokeLineCap() (int) {
+  return int(C.DrawGetStrokeLineCap(cv.drawing))
+}
+
 // Sets the type of the line join on the current drawing surface.
 func (cv Canvas) SetStrokeLineJoin(value int) {
   C.DrawSetStrokeLineJoin(cv.drawing, C.LineJoin(value))
+}
+
+// Returns the type of the line join on the current drawing surface.
+func (cv Canvas) StrokeLineJoin() (int) {
+  return int(C.DrawGetStrokeLineJoin(cv.drawing))
 }
 
 /*
@@ -184,10 +244,20 @@ func (cv Canvas) SetFillColor(color string) {
   C.DrawSetFillColor(cv.drawing, cv.fill)
 }
 
+// Returns the fill color for enclosed areas on the current drawing surface.
+func (cv Canvas) FillColor() (string) {
+  return getPixelHexColor(cv.fill)
+}
+
 // Sets the stroke color on the current drawing surface.
 func (cv Canvas) SetStrokeColor(color string) {
   C.PixelSetColor(cv.stroke, C.CString(color))
   C.DrawSetStrokeColor(cv.drawing, cv.stroke)
+}
+
+// Returns the stroke color on the current drawing surface.
+func (cv Canvas) StrokeColor() (string) {
+  return getPixelHexColor(cv.stroke)
 }
 
 // Draws a circle over the current drawing surface.
