@@ -1,6 +1,7 @@
 package canvas
 
 import "testing"
+
 import "math"
 
 func TestOpenWrite(t *testing.T) {
@@ -9,9 +10,13 @@ func TestOpenWrite(t *testing.T) {
   opened := canvas.Open("examples/input/example.png")
 
   if opened {
+    canvas.AutoOrientate()
+
     canvas.SetQuality(90)
+
     canvas.Write("examples/output/example.jpg")
   }
+
 
   canvas.Destroy()
 }
@@ -237,7 +242,7 @@ func TestBlur(t *testing.T) {
   opened := canvas.Open("examples/input/example.png")
 
   if (opened) {
-    canvas.Blur(0.1)
+    canvas.Blur(3)
     canvas.Write("examples/output/example-blur.png")
   }
 }

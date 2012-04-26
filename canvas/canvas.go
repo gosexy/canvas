@@ -24,10 +24,14 @@
 package canvas
 
 /*
-#cgo LDFLAGS: -lMagickWand -lMagickCore 
+#cgo LDFLAGS: -lMagickWand -lMagickCore
 #cgo CFLAGS: -fopenmp -I/usr/include/ImageMagick  
-#include <stdlib.h>
+
 #include <wand/magick_wand.h>
+
+char *MagickGetPropertyName(char **properties, size_t index) {
+  return properties[index];
+}
 */
 import "C"
 
@@ -35,20 +39,36 @@ import "math"
 
 import "fmt"
 
+import "unsafe"
+
+import "strings"
+
+import "strconv"
+
 var (
-  STROKE_BUTT_CAP       = C.ButtCap
-  STROKE_ROUND_CAP      = C.RoundCap
-  STROKE_SQUARE_CAP     = C.SquareCap
+  STROKE_BUTT_CAP           = C.ButtCap
+  STROKE_ROUND_CAP          = C.RoundCap
+  STROKE_SQUARE_CAP         = C.SquareCap
   
-  STROKE_MITER_JOIN     = C.MiterJoin
-  STROKE_ROUND_JOIN     = C.RoundJoin
-  STROKE_BEVEL_JOIN     = C.BevelJoin
+  STROKE_MITER_JOIN         = C.MiterJoin
+  STROKE_ROUND_JOIN         = C.RoundJoin
+  STROKE_BEVEL_JOIN         = C.BevelJoin
 
-  FILL_EVEN_ODD_RULE    = C.EvenOddRule
-  FILL_NON_ZERO_RULE    = C.NonZeroRule
+  FILL_EVEN_ODD_RULE        = C.EvenOddRule
+  FILL_NON_ZERO_RULE        = C.NonZeroRule
 
-  RAD_TO_DEG            = 180/math.Pi
-  DEG_TO_RAD            = math.Pi/180
+  RAD_TO_DEG                = 180/math.Pi
+  DEG_TO_RAD                = math.Pi/180
+
+  UNDEFINED_ORIENTATION     = C.UndefinedOrientation
+  TOP_LEFT_ORIENTATION      = C.TopLeftOrientation
+  TOP_RIGHT_ORIENTATION     = C.TopRightOrientation
+  BOTTOM_RIGHT_ORIENTATION  = C.BottomRightOrientation
+  BOTTOM_LEFT_ORIENTATION   = C.BottomLeftOrientation
+  LEFT_TOP_ORIENTATION      = C.LeftTopOrientation
+  RIGHT_TOP_ORIENTATION     = C.RightTopOrientation
+  RIGHT_BOTTOM_ORIENTATION  = C.RightBottomOrientation
+  LEFT_BOTTOM_ORIENTATION   = C.LeftBottomOrientation
 )
 
 type Canvas struct {
@@ -93,11 +113,113 @@ func (cv Canvas) Init() {
 
 // Opens an image file, returns true on success.
 func (cv Canvas) Open(filename string) (bool) {
-  status := C.MagickReadImage(cv.wand, C.CString(filename))
+  cv.filename = filename;
+  status := C.MagickReadImage(cv.wand, C.CString(cv.filename))
   if status == C.MagickFalse {
     return false
   }
   return true
+}
+
+// Auto-orientates canvas based on its original image's EXIF metadata
+func (cv Canvas) AutoOrientate() (bool) {
+
+  data := cv.Metadata()
+
+  orientation, err := strconv.Atoi(data["exif:Orientation"])
+
+  if err != nil {
+    return false
+  }
+
+  switch orientation {
+    case TOP_LEFT_ORIENTATION:
+      // normal
+
+    case TOP_RIGHT_ORIENTATION:
+      cv.Flop()
+
+    case  BOTTOM_RIGHT_ORIENTATION:
+      cv.RotateCanvas(math.Pi)
+
+    case BOTTOM_LEFT_ORIENTATION:
+      cv.Flip()
+
+    case LEFT_TOP_ORIENTATION:
+      cv.Flip()
+      cv.RotateCanvas(-math.Pi/2)
+
+    case RIGHT_TOP_ORIENTATION:
+      cv.RotateCanvas(-math.Pi/2)
+
+    case RIGHT_BOTTOM_ORIENTATION:
+      cv.Flop()
+      cv.RotateCanvas(-math.Pi/2)
+
+    case LEFT_BOTTOM_ORIENTATION:
+      cv.RotateCanvas(math.Pi/2)
+
+    default:
+      return false
+  }
+
+  C.MagickSetImageOrientation(cv.wand, (C.OrientationType)(TOP_LEFT_ORIENTATION))
+  cv.SetMetadata("exif:Orientation", (string)(TOP_LEFT_ORIENTATION))
+
+  return true
+}
+
+// Returns all metadata keys from the currently loaded image.
+func (cv Canvas) Metadata() map[string] string {
+  var n C.size_t
+  var i C.size_t
+
+  var value *C.char
+  var key   *C.char
+
+  data := make(map[string] string)
+
+  properties := C.MagickGetImageProperties(cv.wand, C.CString("*"), &n)
+
+  for i = 0; i < n; i++ {
+    key   = C.MagickGetPropertyName(properties, i)
+    value = C.MagickGetImageProperty(cv.wand, key)
+    
+    data[strings.Trim(C.GoString(key), " ")] = strings.Trim(C.GoString(value), " ")
+
+    C.MagickRelinquishMemory(unsafe.Pointer(value))
+    C.MagickRelinquishMemory(unsafe.Pointer(key))
+  }
+
+  return data
+}
+
+// Associates a metadata key with its value.
+func (cv Canvas) SetMetadata(key string, value string) {
+  C.MagickSetImageProperty(cv.wand, C.CString(key), C.CString(value))
+}
+
+// Creates a horizontal mirror image by reflecting the pixels around the central y-axis.
+func (cv Canvas) Flop() (bool) {
+  status := C.MagickFlopImage(cv.wand)
+  if status == C.MagickFalse {
+    return false
+  }
+  return true
+}
+
+// Creates a vertical mirror image by reflecting the pixels around the central x-axis.
+func (cv Canvas) Flip() (bool) {
+  status := C.MagickFlipImage(cv.wand)
+  if status == C.MagickFalse {
+    return false
+  }
+  return true
+}
+
+// Rotates the whole canvas.
+func (cv Canvas) RotateCanvas(rad float64) {
+  C.MagickRotateImage(cv.wand, cv.bg, C.double(RAD_TO_DEG*rad))
 }
 
 // Returns canvas' width.
