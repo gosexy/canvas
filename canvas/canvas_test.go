@@ -4,6 +4,11 @@ import "testing"
 
 import "math"
 
+/*
+  Example image is form Yuko Honda
+  http://www.flickr.com/photos/yukop/6779040884/
+*/
+
 func TestOpenWrite(t *testing.T) {
   canvas := New()
 
