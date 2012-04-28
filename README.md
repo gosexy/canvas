@@ -4,7 +4,7 @@ gocanvas is an image processing library based on ImageMagick's MagickWand, for t
 
 ## License
 
-The [MIT License](https://github.com/xiam/gocanvas/blob/master/LICENSE).
+The [MIT License](https://raw.github.com/xiam/gocanvas/master/LICENSE).
 
 ## Installing
 
