@@ -26,6 +26,23 @@ func TestOpenWrite(t *testing.T) {
   canvas.Destroy()
 }
 
+func TestThumbnail(t *testing.T) {
+  canvas := New()
+
+  opened := canvas.Open("examples/input/example.png")
+
+  if opened {
+    canvas.AutoOrientate()
+
+    canvas.Thumbnail(100, 100)
+
+    canvas.Write("examples/output/example-thumbnail.png")
+  }
+
+
+  canvas.Destroy()
+}
+
 func TestResize(t *testing.T) {
   canvas := New()
 

@@ -36,8 +36,13 @@ Write an example.go file
       opened := cv.Open("examples/input/example.png")
 
       if opened {
-        cv.SetQuality(90)
-        cv.Write("examples/output/example.jpg")
+
+        canvas.AutoOrientate()
+
+        canvas.Thumbnail(100, 100)
+
+        canvas.Write("examples/output/example-thumbnail.png")
+
       }
     }
 

@@ -46,33 +46,34 @@ import "strings"
 import "strconv"
 
 var (
-  STROKE_BUTT_CAP           = C.ButtCap
-  STROKE_ROUND_CAP          = C.RoundCap
-  STROKE_SQUARE_CAP         = C.SquareCap
+  STROKE_BUTT_CAP           = uint(C.ButtCap)
+  STROKE_ROUND_CAP          = uint(C.RoundCap)
+  STROKE_SQUARE_CAP         = uint(C.SquareCap)
   
-  STROKE_MITER_JOIN         = C.MiterJoin
-  STROKE_ROUND_JOIN         = C.RoundJoin
-  STROKE_BEVEL_JOIN         = C.BevelJoin
+  STROKE_MITER_JOIN         = uint(C.MiterJoin)
+  STROKE_ROUND_JOIN         = uint(C.RoundJoin)
+  STROKE_BEVEL_JOIN         = uint(C.BevelJoin)
 
-  FILL_EVEN_ODD_RULE        = C.EvenOddRule
-  FILL_NON_ZERO_RULE        = C.NonZeroRule
+  FILL_EVEN_ODD_RULE        = uint(C.EvenOddRule)
+  FILL_NON_ZERO_RULE        = uint(C.NonZeroRule)
 
   RAD_TO_DEG                = 180/math.Pi
   DEG_TO_RAD                = math.Pi/180
 
-  UNDEFINED_ORIENTATION     = C.UndefinedOrientation
-  TOP_LEFT_ORIENTATION      = C.TopLeftOrientation
-  TOP_RIGHT_ORIENTATION     = C.TopRightOrientation
-  BOTTOM_RIGHT_ORIENTATION  = C.BottomRightOrientation
-  BOTTOM_LEFT_ORIENTATION   = C.BottomLeftOrientation
-  LEFT_TOP_ORIENTATION      = C.LeftTopOrientation
-  RIGHT_TOP_ORIENTATION     = C.RightTopOrientation
-  RIGHT_BOTTOM_ORIENTATION  = C.RightBottomOrientation
-  LEFT_BOTTOM_ORIENTATION   = C.LeftBottomOrientation
+  UNDEFINED_ORIENTATION     = uint(C.UndefinedOrientation)
+  TOP_LEFT_ORIENTATION      = uint(C.TopLeftOrientation)
+  TOP_RIGHT_ORIENTATION     = uint(C.TopRightOrientation)
+  BOTTOM_RIGHT_ORIENTATION  = uint(C.BottomRightOrientation)
+  BOTTOM_LEFT_ORIENTATION   = uint(C.BottomLeftOrientation)
+  LEFT_TOP_ORIENTATION      = uint(C.LeftTopOrientation)
+  RIGHT_TOP_ORIENTATION     = uint(C.RightTopOrientation)
+  RIGHT_BOTTOM_ORIENTATION  = uint(C.RightBottomOrientation)
+  LEFT_BOTTOM_ORIENTATION   = uint(C.LeftBottomOrientation)
 )
 
 type Canvas struct {
   wand *C.MagickWand
+
   fg *C.PixelWand
   bg *C.PixelWand
 
@@ -132,7 +133,7 @@ func (cv Canvas) AutoOrientate() (bool) {
     return false
   }
 
-  switch orientation {
+  switch uint(orientation) {
     case TOP_LEFT_ORIENTATION:
       // normal
 
@@ -217,19 +218,68 @@ func (cv Canvas) Flip() (bool) {
   return true
 }
 
+// Creates a centered thumbnail of the canvas.
+func (cv Canvas) Thumbnail(width uint, height uint) (bool) {
+
+  var ratio float64
+
+  // Normalizing image.
+
+  ratio = math.Min(float64(cv.Width()) / float64(width), float64(cv.Height()) / float64(height))
+
+  if (ratio < 1.0) {
+    // Origin image is smaller than the thumbnail image.
+    max := uint(math.Max(float64(width), float64(height)))
+
+    // Empty replacement buffer with transparent background.
+    replacement := New()
+
+    replacement.SetBackgroundColor("none")
+
+    replacement.Blank(max, max)
+
+    // Putting original image in the center of the replacement canvas.
+    replacement.AppendCanvas(cv, int(int(width - cv.Width()) / 2), int(int(height - cv.Height()) / 2))
+
+    // Replacing wand
+    C.DestroyMagickWand(cv.wand)
+
+    cv.wand = C.CloneMagickWand(replacement.wand)
+
+  } else {
+    // Is bigger, just resizing.
+    cv.Resize(uint(float64(cv.Width()) / ratio), uint(float64(cv.Height()) / ratio))
+  }
+
+  // Now we have an image that we can use to crop the thumbnail from.
+  cv.Crop(int(int(cv.Width() - width) / 2), int(int(cv.Height() - height) / 2), width, height)
+
+  return true
+
+}
+
+// Puts a canvas on top of the current one.
+func (cv Canvas) AppendCanvas(source Canvas, x int, y int) (bool) {
+  status := C.MagickCompositeImage(cv.wand, source.wand, C.OverCompositeOp, C.ssize_t(x), C.ssize_t(y))
+  if status == C.MagickFalse {
+    return false
+  }
+  return true
+}
+
 // Rotates the whole canvas.
 func (cv Canvas) RotateCanvas(rad float64) {
   C.MagickRotateImage(cv.wand, cv.bg, C.double(RAD_TO_DEG*rad))
 }
 
 // Returns canvas' width.
-func (cv Canvas) Width() (int) {
-  return int(C.MagickGetImageWidth(cv.wand))
+func (cv Canvas) Width() (uint) {
+  return uint(C.MagickGetImageWidth(cv.wand))
 }
 
 // Returns canvas' height.
-func (cv Canvas) Height() (int) {
-  return int(C.MagickGetImageHeight(cv.wand))
+func (cv Canvas) Height() (uint) {
+  return uint(C.MagickGetImageHeight(cv.wand))
 }
 
 // Writes canvas to a file, returns true on success.
@@ -243,7 +293,7 @@ func (cv Canvas) Write(filename string) (bool) {
 }
 
 // Changes the size of the canvas, returns true on success.
-func (cv Canvas) Resize(width int, height int) (bool) {
+func (cv Canvas) Resize(width uint, height uint) (bool) {
   status := C.MagickResizeImage(cv.wand, C.size_t(width), C.size_t(height), C.GaussianFilter, C.double(1.0))
   if status == C.MagickFalse {
     return false
@@ -252,7 +302,7 @@ func (cv Canvas) Resize(width int, height int) (bool) {
 }
 
 // Adaptively changes the size of the canvas, returns true on success.
-func (cv Canvas) AdaptiveResize(width int, height int) (bool) {
+func (cv Canvas) AdaptiveResize(width uint, height uint) (bool) {
   status := C.MagickAdaptiveResizeImage(cv.wand, C.size_t(width), C.size_t(height))
   if status == C.MagickFalse {
     return false
@@ -261,7 +311,7 @@ func (cv Canvas) AdaptiveResize(width int, height int) (bool) {
 }
 
 // Changes the compression quality of the canvas. Ranges from 1 (lowest) to 100 (highest).
-func (cv Canvas) SetQuality(quality int) (bool) {
+func (cv Canvas) SetQuality(quality uint) (bool) {
   status := C.MagickSetImageCompressionQuality(cv.wand, C.size_t(quality))
   if status == C.MagickFalse {
     return false
@@ -270,8 +320,8 @@ func (cv Canvas) SetQuality(quality int) (bool) {
 }
 
 // Returns the compression quality of the canvas. Ranges from 1 (lowest) to 100 (highest).
-func (cv Canvas) Quality() (int) {
-  return int(C.MagickGetImageCompressionQuality(cv.wand))
+func (cv Canvas) Quality() (uint) {
+  return uint(C.MagickGetImageCompressionQuality(cv.wand))
 }
 
 /*
@@ -335,23 +385,23 @@ func (cv Canvas) StrokeOpacity() (float64) {
 }
 
 // Sets the type of the line cap on the current drawing surface.
-func (cv Canvas) SetStrokeLineCap(value int) {
+func (cv Canvas) SetStrokeLineCap(value uint) {
   C.DrawSetStrokeLineCap(cv.drawing, C.LineCap(value))
 }
 
 // Returns the type of the line cap on the current drawing surface.
-func (cv Canvas) StrokeLineCap() (int) {
-  return int(C.DrawGetStrokeLineCap(cv.drawing))
+func (cv Canvas) StrokeLineCap() (uint) {
+  return uint(C.DrawGetStrokeLineCap(cv.drawing))
 }
 
 // Sets the type of the line join on the current drawing surface.
-func (cv Canvas) SetStrokeLineJoin(value int) {
+func (cv Canvas) SetStrokeLineJoin(value uint) {
   C.DrawSetStrokeLineJoin(cv.drawing, C.LineJoin(value))
 }
 
 // Returns the type of the line join on the current drawing surface.
-func (cv Canvas) StrokeLineJoin() (int) {
-  return int(C.DrawGetStrokeLineJoin(cv.drawing))
+func (cv Canvas) StrokeLineJoin() (uint) {
+  return uint(C.DrawGetStrokeLineJoin(cv.drawing))
 }
 
 /*
@@ -457,7 +507,7 @@ func (cv Canvas) Destroy() {
 }
 
 // Creates an empty canvas of the given dimensions.
-func (cv Canvas) Blank(width int, height int) (bool) {
+func (cv Canvas) Blank(width uint, height uint) (bool) {
   status := C.MagickNewImage(cv.wand, C.size_t(width), C.size_t(height), cv.bg)
   if status == C.MagickFalse {
     return false
@@ -493,7 +543,7 @@ func (cv Canvas) AddNoise() (bool) {
 }
 
 // Removes a region of a canvas and collapses the canvas to occupy the removed portion.
-func (cv Canvas) Chop(x int, y int, width int, height int) (bool) {
+func (cv Canvas) Chop(x int, y int, width uint, height uint) (bool) {
   status := C.MagickChopImage(cv.wand, C.size_t(width), C.size_t(height), C.ssize_t(x), C.ssize_t(y))
   if status == C.MagickFalse {
     return false
@@ -502,7 +552,7 @@ func (cv Canvas) Chop(x int, y int, width int, height int) (bool) {
 }
 
 // Extracts a region from the canvas.
-func (cv Canvas) Crop(x int, y int, width int, height int) (bool) {
+func (cv Canvas) Crop(x int, y int, width uint, height uint) (bool) {
   status := C.MagickCropImage(cv.wand, C.size_t(width), C.size_t(height), C.ssize_t(x), C.ssize_t(y))
   if status == C.MagickFalse {
     return false
@@ -572,7 +622,7 @@ func New() *Canvas {
   cv.drawing = C.NewDrawingWand()
 
   //cv.SetColor("#ffffff")
-  cv.SetBackgroundColor("#000000")
+  cv.SetBackgroundColor("none")
 
   cv.SetStrokeColor("#ffffff")
   cv.SetStrokeAntialias(true)
