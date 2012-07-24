@@ -1,14 +1,14 @@
-## About
+## gocanvas
 
 gocanvas is an image processing library based on ImageMagick's MagickWand, for the Go programming language.
 
-## License
+## Requeriments
 
-The [MIT License](https://raw.github.com/xiam/gocanvas/master/LICENSE).
+### Mac OSX
 
-## Installing
+The ImageMagick's header files are required. If you're using ``brew`` the installation is straightforward.
 
-In order to compile and install, MagickWand's C header files are required.
+    $ brew install imagemagick
 
 ### Debian
 
@@ -22,7 +22,7 @@ Installing a newer version of ImageMagick over the old files.
 
     $ sudo su
     # cd /usr/local/src
-    # wget http://www.imagemagick.org/download/ImageMagick.tar.gz 
+    # wget http://www.imagemagick.org/download/ImageMagick.tar.gz
     # tar xvzf ImageMagick.tar.gz
     # cd ImageMagick-6.x.y
     # ./configure --prefix=/usr
@@ -37,43 +37,27 @@ Arch Linux already has a recent version of MagickWand.
 
 ### Windows
 
-Choose your [favorite binary](http://imagemagick.com/script/binary-releases.php#windows).
-
-### OSX
-
-Installing using [MacPorts](http://www.macports.org/)
-
-    $ sudo port install ImageMagick
+Choose your [favorite binary](http://imagemagick.com/script/binary-releases.php#windows) and try it.
 
 ### Other OS
 
 Please, follow the [install from source](http://imagemagick.com/script/install-source.php?ImageMagick=9uv1bcgofrv21mhftmlk4v1465) tutorial.
 
-### Pulling gocanvas from github
+## Installation
 
-After installing ImageMagick's C header files, pull gocanvas from github:
+After installing ImageMagick's header files, pull gocanvas from github:
 
-    $ go get github.com/xiam/gocanvas/canvas
-
-Then, the source will be in:
-
-    $ find $GOPATH/src/github.com/xiam/gocanvas/canvas
-
-Note that if you don't have the required C header files installed, gocanvas will fail to install:
-
-    $ canvas.go:27:30: error: wand/magick_wand.h: No such file or directory
+    $ go get github.com/xiam/gocanvas
 
 ## Updating
 
-After installing, you can use `go get -u github.com/xiam/gocanvas/canvas` to update canvas to the latest version.
+After installing, you can use `go get -u github.com/xiam/gocanvas` to keep up to date.
 
 ## Usage example
 
-Write an example.go file
- 
     package main
 
-    import "github.com/xiam/gocanvas/canvas"
+    import "github.com/xiam/gocanvas"
 
     func main() {
       cv := canvas.New()
@@ -96,8 +80,10 @@ Write an example.go file
       }
     }
 
-Then, run it with `go run example.go`
-
 ## Documentation
 
 For full documentation run `go doc github.com/xiam/gocanvas/canvas`
+
+## License
+
+The [MIT License](https://raw.github.com/xiam/gocanvas/master/LICENSE).
