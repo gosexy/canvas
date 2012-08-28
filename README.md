@@ -12,7 +12,9 @@ The ImageMagick's header files are required. If you're using ``brew`` the instal
 
 ### Debian
 
-Debian has an old version of MagickWand (6.6.0), this binding was built against 6.7.x. Please check out the [squeeze branch](https://github.com/xiam/gosexy/tree/squeeze/canvas) to get a version that works on Debian Squeeze.
+Debian has an old version of MagickWand (6.6.0), this binding was built against 6.7.x. Please check out the
+[squeeze branch](https://github.com/gosexy/canvas/tree/squeeze) to get a version that works on Debian Squeeze and
+probably other debian-based distros. This may not be required for Ubuntu.
 
 ### Arch Linux
 
@@ -32,17 +34,17 @@ Please, follow the [install from source](http://imagemagick.com/script/install-s
 
 After installing ImageMagick's header files, pull gocanvas from github:
 
-    $ go get github.com/xiam/gosexy/canvas
+    $ go get github.com/gosexy/canvas
 
 ## Updating
 
-After installing, you can use `go get -u github.com/xiam/gosexy/canvas` to keep up to date.
+After installing, you can use `go get -u github.com/gosexy/canvas` to keep up to date.
 
 ## Usage
 
     package main
 
-    import "github.com/xiam/gosexy/canvas"
+    import "github.com/gosexy/canvas"
 
     func main() {
       cv := canvas.New()
@@ -69,6 +71,6 @@ After installing, you can use `go get -u github.com/xiam/gosexy/canvas` to keep 
 
 You can read ``gosexy/canvas`` documentation from a terminal
 
-    $ go doc github.com/xiam/gosexy/canvas
+    $ go doc github.com/gosexy/canvas
 
-Or you can [browse it](http://go.pkgdoc.org/github.com/xiam/gosexy/canvas) online.
+Or you can [browse it](http://go.pkgdoc.org/github.com/gosexy/canvas) online.
