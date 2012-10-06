@@ -1,6 +1,6 @@
 package main
 
-import "github.com/xiam/gosexy/canvas"
+import "github.com/gosexy/canvas"
 
 func main() {
 	cv := canvas.New()
