@@ -8,11 +8,13 @@
 
 The ImageMagick's header files are required. If you're using ``brew`` the installation is straightforward.
 
-    $ brew install imagemagick
+```sh
+$ brew install imagemagick
+```
 
 ### Debian
 
-Debian has an old version of MagickWand (6.6.0), this binding was built against 6.7.x. Please check out the
+Debian has an old version of MagickWand (6.6.x), this binding was built against 6.7.x. Please check out the
 [squeeze branch](https://github.com/gosexy/canvas/tree/squeeze) to get a version that works on Debian Squeeze and
 probably other debian-based distros. This may not be required for Ubuntu.
 
@@ -20,13 +22,11 @@ probably other debian-based distros. This may not be required for Ubuntu.
 
 Arch Linux already has a recent version of MagickWand.
 
-    $ sudo pacman -S extra/imagemagick
+```sh
+$ sudo pacman -S extra/imagemagick
+```
 
-### Windows
-
-Choose your [favorite binary](http://imagemagick.com/script/binary-releases.php#windows) and try it.
-
-### Other OS
+### Other Operative Systems
 
 Please, follow the [install from source](http://imagemagick.com/script/install-source.php?ImageMagick=9uv1bcgofrv21mhftmlk4v1465) tutorial.
 
@@ -34,7 +34,9 @@ Please, follow the [install from source](http://imagemagick.com/script/install-s
 
 After installing ImageMagick's header files, pull gocanvas from github:
 
-    $ go get github.com/gosexy/canvas
+```sh
+$ go get github.com/gosexy/canvas
+```
 
 ## Updating
 
@@ -42,35 +44,39 @@ After installing, you can use `go get -u github.com/gosexy/canvas` to keep up to
 
 ## Usage
 
-    package main
+```go
+package main
 
-    import "github.com/gosexy/canvas"
+import "github.com/gosexy/canvas"
 
-    func main() {
-      cv := canvas.New()
-      defer cv.Destroy()
+func main() {
+  cv := canvas.New()
+  defer cv.Destroy()
 
-      // Opening some image from disk.
-      opened := cv.Open("examples/input/example.png")
+  // Opening some image from disk.
+  opened := cv.Open("examples/input/example.png")
 
-      if opened {
+  if opened {
 
-        // Photo auto orientation based on EXIF tags.
-        cv.AutoOrientate()
+    // Photo auto orientation based on EXIF tags.
+    cv.AutoOrientate()
 
-        // Creating a squared thumbnail
-        cv.Thumbnail(100, 100)
+    // Creating a squared thumbnail
+    cv.Thumbnail(100, 100)
 
-        // Saving the thumbnail to disk.
-        cv.Write("examples/output/example-thumbnail.png")
+    // Saving the thumbnail to disk.
+    cv.Write("examples/output/example-thumbnail.png")
 
-      }
-    }
+  }
+}
+```
 
 ## Documentation
 
 You can read ``gosexy/canvas`` documentation from a terminal
 
-    $ go doc github.com/gosexy/canvas
+```go
+$ go doc github.com/gosexy/canvas
+```
 
 Or you can [browse it](http://go.pkgdoc.org/github.com/gosexy/canvas) online.
