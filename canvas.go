@@ -25,7 +25,7 @@ package canvas
 
 /*
 #cgo LDFLAGS: -lMagickWand -lMagickCore
-#cgo CFLAGS: -fopenmp -I/usr/include/ImageMagick  
+#cgo CFLAGS: -fopenmp -I/usr/include/ImageMagick
 
 #include <wand/magick_wand.h>
 
@@ -35,16 +35,16 @@ char *MagickGetPropertyName(char **properties, size_t index) {
 */
 import "C"
 
-import "math"
+import (
+	"fmt"
+	"math"
+	"os"
+	"strconv"
+	"strings"
+	"unsafe"
+)
 
-import "fmt"
-
-import "unsafe"
-
-import "strings"
-
-import "strconv"
-
+// MagickWand constants
 var (
 	STROKE_BUTT_CAP   = uint(C.ButtCap)
 	STROKE_ROUND_CAP  = uint(C.RoundCap)
@@ -71,6 +71,7 @@ var (
 	LEFT_BOTTOM_ORIENTATION  = uint(C.LeftBottomOrientation)
 )
 
+// Holds a Canvas object
 type Canvas struct {
 	wand *C.MagickWand
 
@@ -87,6 +88,10 @@ type Canvas struct {
 	height   string
 }
 
+func init() {
+	C.MagickWandGenesis()
+}
+
 // Private: returns wand's hexadecimal color.
 func getPixelHexColor(p *C.PixelWand) string {
 	var rgb [3]float64
@@ -98,7 +103,7 @@ func getPixelHexColor(p *C.PixelWand) string {
 	return fmt.Sprintf("#%02x%02x%02x", int(rgb[0]*255.0), int(rgb[1]*255.0), int(rgb[2]*255.0))
 }
 
-// Private: returns MagickTrue or MagickFalse 
+// Private: returns MagickTrue or MagickFalse
 func magickBoolean(value bool) C.MagickBooleanType {
 	if value == true {
 		return C.MagickTrue
@@ -106,30 +111,32 @@ func magickBoolean(value bool) C.MagickBooleanType {
 	return C.MagickFalse
 }
 
-// Initializes the canvas environment.
-func (cv Canvas) Init() {
-	C.MagickWandGenesis()
-}
-
-// Opens an image file, returns true on success.
-func (cv Canvas) Open(filename string) bool {
-	cv.filename = filename
-	status := C.MagickReadImage(cv.wand, C.CString(cv.filename))
-	if status == C.MagickFalse {
-		return false
+// Opens an image file, returns nil on success, error otherwise.
+func (self Canvas) Open(filename string) error {
+	stat, err := os.Stat(filename)
+	if err != nil {
+		return err
 	}
-	return true
+	if stat.IsDir() == true {
+		return fmt.Errorf(`Could not open file "%s": it's a directory!`, filename)
+	}
+	status := C.MagickReadImage(self.wand, C.CString(filename))
+	if status == C.MagickFalse {
+		return fmt.Errorf(`Could not open image "%s": %s`, filename, self.Error())
+	}
+	self.filename = filename
+	return nil
 }
 
 // Auto-orientates canvas based on its original image's EXIF metadata
-func (cv Canvas) AutoOrientate() bool {
+func (self Canvas) AutoOrientate() error {
 
-	data := cv.Metadata()
+	data := self.Metadata()
 
 	orientation, err := strconv.Atoi(data["exif:Orientation"])
 
 	if err != nil {
-		return false
+		return err
 	}
 
 	switch uint(orientation) {
@@ -137,40 +144,45 @@ func (cv Canvas) AutoOrientate() bool {
 		// normal
 
 	case TOP_RIGHT_ORIENTATION:
-		cv.Flop()
+		self.Flop()
 
 	case BOTTOM_RIGHT_ORIENTATION:
-		cv.RotateCanvas(math.Pi)
+		self.RotateCanvas(math.Pi)
 
 	case BOTTOM_LEFT_ORIENTATION:
-		cv.Flip()
+		self.Flip()
 
 	case LEFT_TOP_ORIENTATION:
-		cv.Flip()
-		cv.RotateCanvas(-math.Pi / 2)
+		self.Flip()
+		self.RotateCanvas(-math.Pi / 2)
 
 	case RIGHT_TOP_ORIENTATION:
-		cv.RotateCanvas(-math.Pi / 2)
+		self.RotateCanvas(-math.Pi / 2)
 
 	case RIGHT_BOTTOM_ORIENTATION:
-		cv.Flop()
-		cv.RotateCanvas(-math.Pi / 2)
+		self.Flop()
+		self.RotateCanvas(-math.Pi / 2)
 
 	case LEFT_BOTTOM_ORIENTATION:
-		cv.RotateCanvas(math.Pi / 2)
+		self.RotateCanvas(math.Pi / 2)
 
 	default:
-		return false
+		return fmt.Errorf("No orientation data found in file.")
 	}
 
-	C.MagickSetImageOrientation(cv.wand, (C.OrientationType)(TOP_LEFT_ORIENTATION))
-	cv.SetMetadata("exif:Orientation", (string)(TOP_LEFT_ORIENTATION))
+	success := C.MagickSetImageOrientation(self.wand, (C.OrientationType)(TOP_LEFT_ORIENTATION))
 
-	return true
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not orientate photo: %s", self.Error())
+	}
+
+	self.SetMetadata("exif:Orientation", (string)(TOP_LEFT_ORIENTATION))
+
+	return nil
 }
 
 // Returns all metadata keys from the currently loaded image.
-func (cv Canvas) Metadata() map[string]string {
+func (self Canvas) Metadata() map[string]string {
 	var n C.size_t
 	var i C.size_t
 
@@ -179,11 +191,11 @@ func (cv Canvas) Metadata() map[string]string {
 
 	data := make(map[string]string)
 
-	properties := C.MagickGetImageProperties(cv.wand, C.CString("*"), &n)
+	properties := C.MagickGetImageProperties(self.wand, C.CString("*"), &n)
 
 	for i = 0; i < n; i++ {
 		key = C.MagickGetPropertyName(properties, i)
-		value = C.MagickGetImageProperty(cv.wand, key)
+		value = C.MagickGetImageProperty(self.wand, key)
 
 		data[strings.Trim(C.GoString(key), " ")] = strings.Trim(C.GoString(value), " ")
 
@@ -194,37 +206,49 @@ func (cv Canvas) Metadata() map[string]string {
 	return data
 }
 
+// Returns the latest error reported by the MagickWand API.
+func (self Canvas) Error() error {
+	var t C.ExceptionType
+	message := C.MagickGetException(self.wand, &t)
+	C.MagickClearException(self.wand)
+	return fmt.Errorf(C.GoString(message))
+}
+
 // Associates a metadata key with its value.
-func (cv Canvas) SetMetadata(key string, value string) {
-	C.MagickSetImageProperty(cv.wand, C.CString(key), C.CString(value))
+func (self Canvas) SetMetadata(key string, value string) error {
+	success := C.MagickSetImageProperty(self.wand, C.CString(key), C.CString(value))
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not set metadata: %s", self.Error())
+	}
+	return nil
 }
 
 // Creates a horizontal mirror image by reflecting the pixels around the central y-axis.
-func (cv Canvas) Flop() bool {
-	status := C.MagickFlopImage(cv.wand)
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) Flop() error {
+	success := C.MagickFlopImage(self.wand)
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not flop image: %s", self.Error())
 	}
-	return true
+	return nil
 }
 
 // Creates a vertical mirror image by reflecting the pixels around the central x-axis.
-func (cv Canvas) Flip() bool {
-	status := C.MagickFlipImage(cv.wand)
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) Flip() error {
+	success := C.MagickFlipImage(self.wand)
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not flop image: %s", self.Error())
 	}
-	return true
+	return nil
 }
 
 // Creates a centered thumbnail of the canvas.
-func (cv Canvas) Thumbnail(width uint, height uint) bool {
+func (self Canvas) Thumbnail(width uint, height uint) error {
 
 	var ratio float64
 
 	// Normalizing image.
 
-	ratio = math.Min(float64(cv.Width())/float64(width), float64(cv.Height())/float64(height))
+	ratio = math.Min(float64(self.Width())/float64(width), float64(self.Height())/float64(height))
 
 	if ratio < 1.0 {
 		// Origin image is smaller than the thumbnail image.
@@ -238,95 +262,122 @@ func (cv Canvas) Thumbnail(width uint, height uint) bool {
 		replacement.Blank(max, max)
 
 		// Putting original image in the center of the replacement canvas.
-		replacement.AppendCanvas(cv, int(int(width-cv.Width())/2), int(int(height-cv.Height())/2))
+		replacement.AppendCanvas(self, int(int(width-self.Width())/2), int(int(height-self.Height())/2))
 
 		// Replacing wand
-		C.DestroyMagickWand(cv.wand)
+		C.DestroyMagickWand(self.wand)
 
-		cv.wand = C.CloneMagickWand(replacement.wand)
+		self.wand = C.CloneMagickWand(replacement.wand)
 
 	} else {
 		// Is bigger, just resizing.
-		cv.Resize(uint(float64(cv.Width())/ratio), uint(float64(cv.Height())/ratio))
+		err := self.Resize(uint(float64(self.Width())/ratio), uint(float64(self.Height())/ratio))
+		if err != nil {
+			return err
+		}
 	}
 
 	// Now we have an image that we can use to crop the thumbnail from.
-	cv.Crop(int(int(cv.Width()-width)/2), int(int(cv.Height()-height)/2), width, height)
+	err := self.Crop(int(int(self.Width()-width)/2), int(int(self.Height()-height)/2), width, height)
 
-	return true
+	if err != nil {
+		return err
+	}
 
+	return nil
 }
 
 // Puts a canvas on top of the current one.
-func (cv Canvas) AppendCanvas(source Canvas, x int, y int) bool {
-	status := C.MagickCompositeImage(cv.wand, source.wand, C.OverCompositeOp, C.ssize_t(x), C.ssize_t(y))
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) AppendCanvas(source Canvas, x int, y int) error {
+	success := C.MagickCompositeImage(self.wand, source.wand, C.OverCompositeOp, C.ssize_t(x), C.ssize_t(y))
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not append image: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Rotates the whole canvas.
-func (cv Canvas) RotateCanvas(rad float64) {
-	C.MagickRotateImage(cv.wand, cv.bg, C.double(RAD_TO_DEG*rad))
+func (self Canvas) RotateCanvas(rad float64) error {
+	success := C.MagickRotateImage(self.wand, self.bg, C.double(RAD_TO_DEG*rad))
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not rotate image: %s", self.Error())
+	}
+
+	return nil
 }
 
 // Returns canvas' width.
-func (cv Canvas) Width() uint {
-	return uint(C.MagickGetImageWidth(cv.wand))
+func (self Canvas) Width() uint {
+	return uint(C.MagickGetImageWidth(self.wand))
 }
 
 // Returns canvas' height.
-func (cv Canvas) Height() uint {
-	return uint(C.MagickGetImageHeight(cv.wand))
+func (self Canvas) Height() uint {
+	return uint(C.MagickGetImageHeight(self.wand))
 }
 
 // Writes canvas to a file, returns true on success.
-func (cv Canvas) Write(filename string) bool {
-	cv.Update()
-	status := C.MagickWriteImage(cv.wand, C.CString(filename))
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) Write(filename string) error {
+	err := self.Update()
+
+	if err != nil {
+		return err
 	}
-	return true
+
+	success := C.MagickWriteImage(self.wand, C.CString(filename))
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not write: %s", self.Error())
+	}
+
+	return nil
 }
 
 // Changes the size of the canvas, returns true on success.
-func (cv Canvas) Resize(width uint, height uint) bool {
-	status := C.MagickResizeImage(cv.wand, C.size_t(width), C.size_t(height), C.GaussianFilter, C.double(1.0))
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) Resize(width uint, height uint) error {
+	success := C.MagickResizeImage(self.wand, C.size_t(width), C.size_t(height), C.GaussianFilter, C.double(1.0))
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not resize: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Adaptively changes the size of the canvas, returns true on success.
-func (cv Canvas) AdaptiveResize(width uint, height uint) bool {
-	status := C.MagickAdaptiveResizeImage(cv.wand, C.size_t(width), C.size_t(height))
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) AdaptiveResize(width uint, height uint) error {
+	success := C.MagickAdaptiveResizeImage(self.wand, C.size_t(width), C.size_t(height))
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not resize: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Changes the compression quality of the canvas. Ranges from 1 (lowest) to 100 (highest).
-func (cv Canvas) SetQuality(quality uint) bool {
-	status := C.MagickSetImageCompressionQuality(cv.wand, C.size_t(quality))
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) SetQuality(quality uint) error {
+	success := C.MagickSetImageCompressionQuality(self.wand, C.size_t(quality))
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not set compression quality: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Returns the compression quality of the canvas. Ranges from 1 (lowest) to 100 (highest).
-func (cv Canvas) Quality() uint {
-	return uint(C.MagickGetImageCompressionQuality(cv.wand))
+func (self Canvas) Quality() uint {
+	return uint(C.MagickGetImageCompressionQuality(self.wand))
 }
 
 /*
 // Sets canvas's foreground color.
-func (cv Canvas) SetColor(color string) (bool) {
-  status := C.PixelSetColor(cv.fg, C.CString(color))
+func (self Canvas) SetColor(color string) (bool) {
+  status := C.PixelSetColor(self.fg, C.CString(color))
   if status == C.MagickFalse {
     return false
   }
@@ -335,28 +386,30 @@ func (cv Canvas) SetColor(color string) (bool) {
 */
 
 // Sets canvas' background color.
-func (cv Canvas) SetBackgroundColor(color string) bool {
-	C.PixelSetColor(cv.bg, C.CString(color))
-	status := C.MagickSetImageBackgroundColor(cv.wand, cv.bg)
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) SetBackgroundColor(color string) error {
+	C.PixelSetColor(self.bg, C.CString(color))
+	success := C.MagickSetImageBackgroundColor(self.wand, self.bg)
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not set background color: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Returns canvas' background color.
-func (cv Canvas) BackgroundColor() string {
-	return getPixelHexColor(cv.bg)
+func (self Canvas) BackgroundColor() string {
+	return getPixelHexColor(self.bg)
 }
 
 // Sets antialiasing setting for the current drawing stroke.
-func (cv Canvas) SetStrokeAntialias(value bool) {
-	C.DrawSetStrokeAntialias(cv.drawing, magickBoolean(value))
+func (self Canvas) SetStrokeAntialias(value bool) {
+	C.DrawSetStrokeAntialias(self.drawing, magickBoolean(value))
 }
 
 // Returns antialiasing setting for the current drawing stroke.
-func (cv Canvas) StrokeAntialias() bool {
-	value := C.DrawGetStrokeAntialias(cv.drawing)
+func (self Canvas) StrokeAntialias() bool {
+	value := C.DrawGetStrokeAntialias(self.drawing)
 	if value == C.MagickTrue {
 		return true
 	}
@@ -364,274 +417,297 @@ func (cv Canvas) StrokeAntialias() bool {
 }
 
 // Sets the width of the stroke on the current drawing surface.
-func (cv Canvas) SetStrokeWidth(value float64) {
-	C.DrawSetStrokeWidth(cv.drawing, C.double(value))
+func (self Canvas) SetStrokeWidth(value float64) {
+	C.DrawSetStrokeWidth(self.drawing, C.double(value))
 }
 
 // Returns the width of the stroke on the current drawing surface.
-func (cv Canvas) StrokeWidth() float64 {
-	return float64(C.DrawGetStrokeWidth(cv.drawing))
+func (self Canvas) StrokeWidth() float64 {
+	return float64(C.DrawGetStrokeWidth(self.drawing))
 }
 
 // Sets the opacity of the stroke on the current drawing surface.
-func (cv Canvas) SetStrokeOpacity(value float64) {
-	C.DrawSetStrokeOpacity(cv.drawing, C.double(value))
+func (self Canvas) SetStrokeOpacity(value float64) {
+	C.DrawSetStrokeOpacity(self.drawing, C.double(value))
 }
 
 // Returns the opacity of the stroke on the current drawing surface.
-func (cv Canvas) StrokeOpacity() float64 {
-	return float64(C.DrawGetStrokeOpacity(cv.drawing))
+func (self Canvas) StrokeOpacity() float64 {
+	return float64(C.DrawGetStrokeOpacity(self.drawing))
 }
 
 // Sets the type of the line cap on the current drawing surface.
-func (cv Canvas) SetStrokeLineCap(value uint) {
-	C.DrawSetStrokeLineCap(cv.drawing, C.LineCap(value))
+func (self Canvas) SetStrokeLineCap(value uint) {
+	C.DrawSetStrokeLineCap(self.drawing, C.LineCap(value))
 }
 
 // Returns the type of the line cap on the current drawing surface.
-func (cv Canvas) StrokeLineCap() uint {
-	return uint(C.DrawGetStrokeLineCap(cv.drawing))
+func (self Canvas) StrokeLineCap() uint {
+	return uint(C.DrawGetStrokeLineCap(self.drawing))
 }
 
 // Sets the type of the line join on the current drawing surface.
-func (cv Canvas) SetStrokeLineJoin(value uint) {
-	C.DrawSetStrokeLineJoin(cv.drawing, C.LineJoin(value))
+func (self Canvas) SetStrokeLineJoin(value uint) {
+	C.DrawSetStrokeLineJoin(self.drawing, C.LineJoin(value))
 }
 
 // Returns the type of the line join on the current drawing surface.
-func (cv Canvas) StrokeLineJoin() uint {
-	return uint(C.DrawGetStrokeLineJoin(cv.drawing))
+func (self Canvas) StrokeLineJoin() uint {
+	return uint(C.DrawGetStrokeLineJoin(self.drawing))
 }
 
 /*
-func (cv Canvas) SetFillRule(value int) {
-  C.DrawSetFillRule(cv.drawing, C.FillRule(value))
+func (self Canvas) SetFillRule(value int) {
+  C.DrawSetFillRule(self.drawing, C.FillRule(value))
 }
 */
 
 // Sets the fill color for enclosed areas on the current drawing surface.
-func (cv Canvas) SetFillColor(color string) {
-	C.PixelSetColor(cv.fill, C.CString(color))
-	C.DrawSetFillColor(cv.drawing, cv.fill)
+func (self Canvas) SetFillColor(color string) {
+	C.PixelSetColor(self.fill, C.CString(color))
+	C.DrawSetFillColor(self.drawing, self.fill)
 }
 
 // Returns the fill color for enclosed areas on the current drawing surface.
-func (cv Canvas) FillColor() string {
-	return getPixelHexColor(cv.fill)
+func (self Canvas) FillColor() string {
+	return getPixelHexColor(self.fill)
 }
 
 // Sets the stroke color on the current drawing surface.
-func (cv Canvas) SetStrokeColor(color string) {
-	C.PixelSetColor(cv.stroke, C.CString(color))
-	C.DrawSetStrokeColor(cv.drawing, cv.stroke)
+func (self Canvas) SetStrokeColor(color string) {
+	C.PixelSetColor(self.stroke, C.CString(color))
+	C.DrawSetStrokeColor(self.drawing, self.stroke)
 }
 
 // Returns the stroke color on the current drawing surface.
-func (cv Canvas) StrokeColor() string {
-	return getPixelHexColor(cv.stroke)
+func (self Canvas) StrokeColor() string {
+	return getPixelHexColor(self.stroke)
 }
 
 // Draws a circle over the current drawing surface.
-func (cv Canvas) Circle(radius float64) {
-	C.DrawCircle(cv.drawing, C.double(0), C.double(0), C.double(radius), C.double(0))
+func (self Canvas) Circle(radius float64) {
+	C.DrawCircle(self.drawing, C.double(0), C.double(0), C.double(radius), C.double(0))
 }
 
 // Draws a rectangle over the current drawing surface.
-func (cv Canvas) Rectangle(x float64, y float64) {
-	C.DrawRectangle(cv.drawing, C.double(0), C.double(0), C.double(x), C.double(y))
+func (self Canvas) Rectangle(x float64, y float64) {
+	C.DrawRectangle(self.drawing, C.double(0), C.double(0), C.double(x), C.double(y))
 }
 
 // Moves the current coordinate system origin to the specified coordinate.
-func (cv Canvas) Translate(x float64, y float64) {
-	C.DrawTranslate(cv.drawing, C.double(x), C.double(y))
+func (self Canvas) Translate(x float64, y float64) {
+	C.DrawTranslate(self.drawing, C.double(x), C.double(y))
 }
 
 // Applies a scaling factor to the units of the current coordinate system.
-func (cv Canvas) Scale(x float64, y float64) {
-	C.DrawScale(cv.drawing, C.double(x), C.double(y))
+func (self Canvas) Scale(x float64, y float64) {
+	C.DrawScale(self.drawing, C.double(x), C.double(y))
 }
 
 // Draws a line starting on the current coordinate system origin and ending on the specified coordinates.
-func (cv Canvas) Line(x float64, y float64) {
-	C.DrawLine(cv.drawing, C.double(0), C.double(0), C.double(x), C.double(y))
+func (self Canvas) Line(x float64, y float64) {
+	C.DrawLine(self.drawing, C.double(0), C.double(0), C.double(x), C.double(y))
 }
 
 /*
-func (cv Canvas) Skew(x float64, y float64) {
-  C.DrawSkewX(cv.drawing, C.double(x))
-  C.DrawSkewY(cv.drawing, C.double(y))
+func (self Canvas) Skew(x float64, y float64) {
+  C.DrawSkewX(self.drawing, C.double(x))
+  C.DrawSkewY(self.drawing, C.double(y))
 }
 */
 
 // Applies a rotation of a given angle (in radians) on the current coordinate system.
-func (cv Canvas) Rotate(rad float64) {
+func (self Canvas) Rotate(rad float64) {
 	deg := RAD_TO_DEG * rad
-	C.DrawRotate(cv.drawing, C.double(deg))
+	C.DrawRotate(self.drawing, C.double(deg))
 }
 
 // Draws an ellipse centered at the current coordinate system's origin.
-func (cv Canvas) Ellipse(a float64, b float64) {
-	C.DrawEllipse(cv.drawing, C.double(0), C.double(0), C.double(a), C.double(b), 0, 360)
+func (self Canvas) Ellipse(a float64, b float64) {
+	C.DrawEllipse(self.drawing, C.double(0), C.double(0), C.double(a), C.double(b), 0, 360)
 }
 
 // Clones the current drawing surface and stores it in a stack.
-func (cv Canvas) PushDrawing() bool {
-	status := C.PushDrawingWand(cv.drawing)
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) PushDrawing() error {
+	success := C.PushDrawingWand(self.drawing)
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not push surface: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Destroys the current drawing surface and returns the latest surface that was pushed to the stack.
-func (cv Canvas) PopDrawing() bool {
-	status := C.PopDrawingWand(cv.drawing)
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) PopDrawing() error {
+	success := C.PopDrawingWand(self.drawing)
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not pop surface: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Copies a drawing surface to the canvas.
-func (cv Canvas) Update() {
-	C.MagickDrawImage(cv.wand, cv.drawing)
+func (self Canvas) Update() error {
+	success := C.MagickDrawImage(self.wand, self.drawing)
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not update image: %s", self.Error())
+	}
+
+	return nil
 }
 
 // Destroys canvas.
-func (cv Canvas) Destroy() {
-	if cv.wand != nil {
-		C.DestroyMagickWand(cv.wand)
+func (self Canvas) Destroy() error {
+	if self.wand != nil {
+		C.DestroyMagickWand(self.wand)
+		self.wand = nil
+		return nil
 	}
-	C.MagickWandTerminus()
+	return fmt.Errorf("Nothing to destroy")
+	//C.MagickWandTerminus()
 }
 
 // Creates an empty canvas of the given dimensions.
-func (cv Canvas) Blank(width uint, height uint) bool {
-	status := C.MagickNewImage(cv.wand, C.size_t(width), C.size_t(height), cv.bg)
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) Blank(width uint, height uint) error {
+	success := C.MagickNewImage(self.wand, C.size_t(width), C.size_t(height), self.bg)
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not create image: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Convolves the canvas with a Gaussian function given its standard deviation.
-func (cv Canvas) Blur(sigma float64) bool {
-	status := C.MagickBlurImage(cv.wand, C.double(0), C.double(sigma))
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) Blur(sigma float64) error {
+	success := C.MagickBlurImage(self.wand, C.double(0), C.double(sigma))
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not blur image: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Adaptively blurs the image by blurring less intensely near the edges and more intensely far from edges.
-func (cv Canvas) AdaptiveBlur(sigma float64) bool {
-	status := C.MagickAdaptiveBlurImage(cv.wand, C.double(0), C.double(sigma))
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) AdaptiveBlur(sigma float64) error {
+	success := C.MagickAdaptiveBlurImage(self.wand, C.double(0), C.double(sigma))
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not blur image: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Adds random noise to the canvas.
-func (cv Canvas) AddNoise() bool {
-	status := C.MagickAddNoiseImage(cv.wand, C.GaussianNoise)
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) AddNoise() error {
+	success := C.MagickAddNoiseImage(self.wand, C.GaussianNoise)
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not add noise: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Removes a region of a canvas and collapses the canvas to occupy the removed portion.
-func (cv Canvas) Chop(x int, y int, width uint, height uint) bool {
-	status := C.MagickChopImage(cv.wand, C.size_t(width), C.size_t(height), C.ssize_t(x), C.ssize_t(y))
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) Chop(x int, y int, width uint, height uint) error {
+	success := C.MagickChopImage(self.wand, C.size_t(width), C.size_t(height), C.ssize_t(x), C.ssize_t(y))
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not chop: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Extracts a region from the canvas.
-func (cv Canvas) Crop(x int, y int, width uint, height uint) bool {
-	status := C.MagickCropImage(cv.wand, C.size_t(width), C.size_t(height), C.ssize_t(x), C.ssize_t(y))
-	if status == C.MagickFalse {
-		return false
+func (self Canvas) Crop(x int, y int, width uint, height uint) error {
+	success := C.MagickCropImage(self.wand, C.size_t(width), C.size_t(height), C.ssize_t(x), C.ssize_t(y))
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not crop: %s", self.Error())
 	}
-	return true
+
+	return nil
 }
 
 // Adjusts the canvas's brightness given a factor (-1.0 thru 1.0)
-func (cv Canvas) SetBrightness(factor float64) bool {
+func (self Canvas) SetBrightness(factor float64) error {
 
 	factor = math.Max(-1, factor)
 	factor = math.Min(1, factor)
 
-	status := C.MagickModulateImage(cv.wand, C.double(100+factor*100.0), C.double(100), C.double(100))
+	success := C.MagickModulateImage(self.wand, C.double(100+factor*100.0), C.double(100), C.double(100))
 
-	if status == C.MagickFalse {
-		return false
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not set brightness: %s", self.Error())
 	}
 
-	return true
+	return nil
 }
 
 // Adjusts the canvas's saturation given a factor (-1.0 thru 1.0)
-func (cv Canvas) SetSaturation(factor float64) bool {
+func (self Canvas) SetSaturation(factor float64) error {
 
 	factor = math.Max(-1, factor)
 	factor = math.Min(1, factor)
 
-	status := C.MagickModulateImage(cv.wand, C.double(100), C.double(100+factor*100.0), C.double(100))
+	success := C.MagickModulateImage(self.wand, C.double(100), C.double(100+factor*100.0), C.double(100))
 
-	if status == C.MagickFalse {
-		return false
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not set saturation: %s", self.Error())
 	}
 
-	return true
+	return nil
 }
 
 // Adjusts the canvas's hue given a factor (-1.0 thru 1.0)
-func (cv Canvas) SetHue(factor float64) bool {
+func (self Canvas) SetHue(factor float64) error {
 
 	factor = math.Max(-1, factor)
 	factor = math.Min(1, factor)
 
-	status := C.MagickModulateImage(cv.wand, C.double(100), C.double(100), C.double(100+factor*100.0))
+	success := C.MagickModulateImage(self.wand, C.double(100), C.double(100), C.double(100+factor*100.0))
 
-	if status == C.MagickFalse {
-		return false
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not set hue: %s", self.Error())
 	}
 
-	return true
+	return nil
 }
 
 // Returns a new canvas object.
 func New() *Canvas {
-	cv := &Canvas{}
+	self := &Canvas{}
 
-	cv.Init()
+	self.wand = C.NewMagickWand()
 
-	cv.wand = C.NewMagickWand()
+	self.fg = C.NewPixelWand()
+	self.bg = C.NewPixelWand()
 
-	cv.fg = C.NewPixelWand()
-	cv.bg = C.NewPixelWand()
+	self.fill = C.NewPixelWand()
+	self.stroke = C.NewPixelWand()
 
-	cv.fill = C.NewPixelWand()
-	cv.stroke = C.NewPixelWand()
+	self.drawing = C.NewDrawingWand()
 
-	cv.drawing = C.NewDrawingWand()
+	//self.SetColor("#ffffff")
+	self.SetBackgroundColor("none")
 
-	//cv.SetColor("#ffffff")
-	cv.SetBackgroundColor("none")
+	self.SetStrokeColor("#ffffff")
+	self.SetStrokeAntialias(true)
+	self.SetStrokeWidth(1.0)
+	self.SetStrokeOpacity(1.0)
+	self.SetStrokeLineCap(STROKE_ROUND_CAP)
+	self.SetStrokeLineJoin(STROKE_ROUND_JOIN)
 
-	cv.SetStrokeColor("#ffffff")
-	cv.SetStrokeAntialias(true)
-	cv.SetStrokeWidth(1.0)
-	cv.SetStrokeOpacity(1.0)
-	cv.SetStrokeLineCap(STROKE_ROUND_CAP)
-	cv.SetStrokeLineJoin(STROKE_ROUND_JOIN)
+	//self.SetFillRule(FILL_EVEN_ODD_RULE)
+	self.SetFillColor("#888888")
 
-	//cv.SetFillRule(FILL_EVEN_ODD_RULE)
-	cv.SetFillColor("#888888")
-
-	return cv
+	return self
 }

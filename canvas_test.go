@@ -1,25 +1,51 @@
 package canvas
 
-import "testing"
-
-import "math"
+import (
+	"math"
+	"testing"
+)
 
 /*
   Example image is form Yuko Honda
   http://www.flickr.com/photos/yukop/6779040884/
 */
 
+func TestFail(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.dat")
+
+	if err == nil {
+		canvas.Destroy()
+		t.Errorf("Test should have failed.")
+	}
+}
+
+func TestMalformed(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/malformed.png")
+
+	if err == nil {
+		canvas.Destroy()
+		t.Errorf("Test should have failed.")
+	}
+
+}
+
 func TestOpenWrite(t *testing.T) {
 	canvas := New()
 
-	opened := canvas.Open("examples/input/example.png")
+	err := canvas.Open("_examples/input/example.png")
 
-	if opened {
+	if err == nil {
 		canvas.AutoOrientate()
 
 		canvas.SetQuality(90)
 
-		canvas.Write("examples/output/example.jpg")
+		canvas.Write("_examples/output/example.jpg")
+	} else {
+		t.Errorf("Error: %s\n", err)
 	}
 
 	canvas.Destroy()
@@ -28,14 +54,16 @@ func TestOpenWrite(t *testing.T) {
 func TestThumbnail(t *testing.T) {
 	canvas := New()
 
-	opened := canvas.Open("examples/input/example.png")
+	err := canvas.Open("_examples/input/example.png")
 
-	if opened {
+	if err == nil {
 		canvas.AutoOrientate()
 
 		canvas.Thumbnail(100, 100)
 
-		canvas.Write("examples/output/example-thumbnail.png")
+		canvas.Write("_examples/output/example-thumbnail.png")
+	} else {
+		t.Errorf("Error: %s\n", err)
 	}
 
 	canvas.Destroy()
@@ -44,11 +72,13 @@ func TestThumbnail(t *testing.T) {
 func TestResize(t *testing.T) {
 	canvas := New()
 
-	opened := canvas.Open("examples/input/example.png")
+	err := canvas.Open("_examples/input/example.png")
 
-	if opened {
+	if err == nil {
 		canvas.Resize(100, 100)
-		canvas.Write("examples/output/example-100x100.png")
+		canvas.Write("_examples/output/example-100x100.png")
+	} else {
+		t.Errorf("Error: %s\n", err)
 	}
 
 	canvas.Destroy()
@@ -59,10 +89,12 @@ func TestBlank(t *testing.T) {
 
 	canvas.SetBackgroundColor("#00ff00")
 
-	success := canvas.Blank(400, 400)
+	err := canvas.Blank(400, 400)
 
-	if success {
-		canvas.Write("examples/output/example-blank.png")
+	if err == nil {
+		canvas.Write("_examples/output/example-blank.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
 	}
 
 	canvas.Destroy()
@@ -72,8 +104,9 @@ func TestSettersAndGetters(t *testing.T) {
 
 	canvas := New()
 
-	success := canvas.Blank(400, 400)
-	if success != true {
+	err := canvas.Blank(400, 400)
+
+	if err != nil {
 		t.Errorf("Could not create blank image.")
 	}
 
@@ -158,16 +191,18 @@ func TestDrawLine(t *testing.T) {
 
 	canvas.SetBackgroundColor("#000000")
 
-	success := canvas.Blank(400, 400)
+	err := canvas.Blank(400, 400)
 
-	if success {
+	if err == nil {
 
 		canvas.Translate(200, 200)
 		canvas.SetStrokeWidth(10)
 		canvas.SetStrokeColor("#ffffff")
 		canvas.Line(100, 100)
 
-		canvas.Write("examples/output/example-line.png")
+		canvas.Write("_examples/output/example-line.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
 	}
 
 	canvas.Destroy()
@@ -178,9 +213,9 @@ func TestDrawCircle(t *testing.T) {
 
 	canvas.SetBackgroundColor("#000000")
 
-	success := canvas.Blank(400, 400)
+	err := canvas.Blank(400, 400)
 
-	if success {
+	if err == nil {
 
 		canvas.SetFillColor("#ff0000")
 
@@ -198,7 +233,9 @@ func TestDrawCircle(t *testing.T) {
 		canvas.Circle(20)
 		canvas.PopDrawing()
 
-		canvas.Write("examples/output/example-circle.png")
+		canvas.Write("_examples/output/example-circle.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
 	}
 
 	canvas.Destroy()
@@ -209,9 +246,9 @@ func TestDrawRectangle(t *testing.T) {
 
 	canvas.SetBackgroundColor("#000000")
 
-	success := canvas.Blank(400, 400)
+	err := canvas.Blank(400, 400)
 
-	if success {
+	if err == nil {
 
 		canvas.SetFillColor("#ff0000")
 
@@ -220,7 +257,9 @@ func TestDrawRectangle(t *testing.T) {
 		canvas.SetStrokeColor("#ffffff")
 		canvas.Rectangle(100, -150)
 
-		canvas.Write("examples/output/example-rectangle.png")
+		canvas.Write("_examples/output/example-rectangle.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
 	}
 
 	canvas.Destroy()
@@ -229,9 +268,9 @@ func TestDrawRectangle(t *testing.T) {
 func TestDrawEllipse(t *testing.T) {
 	canvas := New()
 
-	success := canvas.Blank(400, 400)
+	err := canvas.Blank(400, 400)
 
-	if success {
+	if err == nil {
 
 		canvas.SetFillColor("#ff0000")
 
@@ -249,7 +288,9 @@ func TestDrawEllipse(t *testing.T) {
 		canvas.Ellipse(25, 90)
 		canvas.PopDrawing()
 
-		canvas.Write("examples/output/example-ellipse.png")
+		canvas.Write("_examples/output/example-ellipse.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
 	}
 
 	canvas.Destroy()
@@ -259,11 +300,13 @@ func TestBlur(t *testing.T) {
 	canvas := New()
 	defer canvas.Destroy()
 
-	opened := canvas.Open("examples/input/example.png")
+	err := canvas.Open("_examples/input/example.png")
 
-	if opened {
+	if err == nil {
 		canvas.Blur(3)
-		canvas.Write("examples/output/example-blur.png")
+		canvas.Write("_examples/output/example-blur.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
 	}
 }
 
@@ -271,13 +314,15 @@ func TestModulate(t *testing.T) {
 	canvas := New()
 	defer canvas.Destroy()
 
-	opened := canvas.Open("examples/input/example.png")
+	err := canvas.Open("_examples/input/example.png")
 
-	if opened {
+	if err == nil {
 		canvas.SetBrightness(-0.5)
 		canvas.SetHue(0.2)
 		canvas.SetSaturation(0.9)
-		canvas.Write("examples/output/example-modulate.png")
+		canvas.Write("_examples/output/example-modulate.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
 	}
 }
 
@@ -286,12 +331,14 @@ func TestAdaptive(t *testing.T) {
 	canvas := New()
 	defer canvas.Destroy()
 
-	opened := canvas.Open("examples/input/example.png")
+	err := canvas.Open("_examples/input/example.png")
 
-	if opened {
+	if err == nil {
 		canvas.AdaptiveBlur(1.2)
 		canvas.AdaptiveResize(100, 100)
-		canvas.Write("examples/output/example-adaptive.png")
+		canvas.Write("_examples/output/example-adaptive.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
 	}
 }
 
@@ -299,11 +346,13 @@ func TestNoise(t *testing.T) {
 	canvas := New()
 	defer canvas.Destroy()
 
-	opened := canvas.Open("examples/input/example.png")
+	err := canvas.Open("_examples/input/example.png")
 
-	if opened {
+	if err == nil {
 		canvas.AddNoise()
-		canvas.Write("examples/output/example-noise.png")
+		canvas.Write("_examples/output/example-noise.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
 	}
 }
 
@@ -311,11 +360,13 @@ func TestChop(t *testing.T) {
 	canvas := New()
 	defer canvas.Destroy()
 
-	opened := canvas.Open("examples/input/example.png")
+	err := canvas.Open("_examples/input/example.png")
 
-	if opened {
+	if err == nil {
 		canvas.Chop(0, 0, 100, 50)
-		canvas.Write("examples/output/example-chop.png")
+		canvas.Write("_examples/output/example-chop.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
 	}
 }
 
@@ -323,10 +374,12 @@ func TestCrop(t *testing.T) {
 	canvas := New()
 	defer canvas.Destroy()
 
-	opened := canvas.Open("examples/input/example.png")
+	err := canvas.Open("_examples/input/example.png")
 
-	if opened {
+	if err == nil {
 		canvas.Crop(100, 200, 200, 100)
-		canvas.Write("examples/output/example-crop.png")
+		canvas.Write("_examples/output/example-crop.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
 	}
 }
