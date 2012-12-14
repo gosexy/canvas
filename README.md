@@ -1,10 +1,11 @@
 ## gosexy/canvas
 
-`gosexy/canvas` is an image processing library based on ImageMagick's MagickWand, for the Go programming language. It uses cgo.
+`gosexy/canvas` is an image processing library for Go that uses ImageMagick's MagickWand
+as backend.
 
 ## Requeriments
 
-ImageMagick's development files are required.
+ImageMagick's MagickWand development files are required.
 
 ```sh
 # OSX
