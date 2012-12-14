@@ -1,46 +1,29 @@
 ## gosexy/canvas
 
-``gosexy/canvas`` is an image processing library based on ImageMagick's MagickWand, for the Go programming language.
+`gosexy/canvas` is an image processing library based on ImageMagick's MagickWand, for the Go programming language. It uses cgo.
 
 ## Requeriments
 
-### Mac OSX
-
-The ImageMagick's header files are required. If you're using ``brew`` the installation is straightforward.
+ImageMagick's development files are required.
 
 ```sh
+# OSX
 $ brew install imagemagick
-```
 
-### Debian
-
-Debian has an old version of MagickWand (6.6.x), this binding was built against 6.7.x. Please check out the
-[squeeze branch](https://github.com/gosexy/canvas/tree/squeeze) to get a version that works on Debian Squeeze and
-probably other debian-based distros. This may not be required for Ubuntu.
-
-### Arch Linux
-
-Arch Linux already has a recent version of MagickWand.
-
-```sh
+# Arch Linux
 $ sudo pacman -S extra/imagemagick
+
+# Debian
+$ sudo aptitude install libmagickwand-dev
 ```
-
-### Other Operative Systems
-
-Please, follow the [install from source](http://imagemagick.com/script/install-source.php?ImageMagick=9uv1bcgofrv21mhftmlk4v1465) tutorial.
 
 ## Installation
 
-After installing ImageMagick's header files, pull gocanvas from github:
+Just pull `gosexy/canvas` from github using `go get`:
 
 ```sh
 $ go get github.com/gosexy/canvas
 ```
-
-## Updating
-
-After installing, you can use `go get -u github.com/gosexy/canvas` to keep up to date.
 
 ## Usage
 
@@ -72,10 +55,10 @@ func main() {
 
 ## Documentation
 
-You can read ``gosexy/canvas`` documentation from a terminal
+Read the `gosexy/canvas` documentation from a terminal
 
 ```go
 $ go doc github.com/gosexy/canvas
 ```
 
-Or you can [browse it](http://go.pkgdoc.org/github.com/gosexy/canvas) online.
+Alternatively, you can [browse it](http://go.pkgdoc.org/github.com/gosexy/canvas) online.
