@@ -250,6 +250,23 @@ func (self Canvas) Thumbnail(width uint, height uint) error {
 
 	ratio = math.Min(float64(self.Width())/float64(width), float64(self.Height())/float64(height))
 
+	return self.thumbnail(width, height, ratio)
+}
+
+// Creates a thumbnail that fits within the given dimensions
+func (self Canvas) Fit(width uint, height uint) error {
+
+	var ratio float64
+
+	// Normalizing image.
+
+	ratio = math.Max(float64(self.Width())/float64(width), float64(self.Height())/float64(height))
+
+	return self.thumbnail(width, height, ratio)
+}
+
+func (self Canvas) thumbnail(width uint, height uint, ratio float64) error {
+
 	if ratio < 1.0 {
 		// Origin image is smaller than the thumbnail image.
 		max := uint(math.Max(float64(width), float64(height)))

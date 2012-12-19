@@ -69,6 +69,24 @@ func TestThumbnail(t *testing.T) {
 	canvas.Destroy()
 }
 
+func TestFit(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.AutoOrientate()
+
+		canvas.Fit(100, 100)
+
+		canvas.Write("_examples/output/example-fit.png")
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
 func TestResize(t *testing.T) {
 	canvas := New()
 
