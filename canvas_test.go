@@ -69,6 +69,27 @@ func TestThumbnail(t *testing.T) {
 	canvas.Destroy()
 }
 
+func TestClone(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+
+		clone := canvas.Clone()
+		clone.Resize(100, 100)
+		clone.Write("_examples/output/cloned-100x100.png")
+
+		clone.Destroy()
+
+		canvas.Write("_examples/output/not-cloned.png")
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
 func TestResize(t *testing.T) {
 	canvas := New()
 

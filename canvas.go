@@ -241,6 +241,19 @@ func (self Canvas) Flip() error {
 	return nil
 }
 
+// Clones an image to another canvas
+func (self Canvas) Clone() *Canvas {
+	clone := New()
+
+	clone.SetBackgroundColor("none")
+
+	clone.Blank(self.Width(), self.Height())
+
+	clone.AppendCanvas(self, 0, 0)
+
+	return clone
+}
+
 // Creates a centered thumbnail of the canvas.
 func (self Canvas) Thumbnail(width uint, height uint) error {
 
