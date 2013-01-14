@@ -128,6 +128,16 @@ func (self Canvas) Open(filename string) error {
 	return nil
 }
 
+// Reads an image or image sequence from a blob.
+func (self Canvas) OpenBlob(blob []byte, length uint) error {
+    status := C.MagickReadImageBlob(self.wand, unsafe.Pointer(&blob[0]), C.size_t(length))
+	if status == C.MagickFalse {
+		return fmt.Errorf(`Could not open image from blob: %s`, self.Error())
+	}
+	return nil
+}
+
+
 // Auto-orientates canvas based on its original image's EXIF metadata
 func (self Canvas) AutoOrientate() error {
 

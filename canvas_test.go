@@ -3,6 +3,7 @@ package canvas
 import (
 	"math"
 	"testing"
+    "os"
 )
 
 /*
@@ -37,6 +38,37 @@ func TestOpenWrite(t *testing.T) {
 	canvas := New()
 
 	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.AutoOrientate()
+
+		canvas.SetQuality(90)
+
+		canvas.Write("_examples/output/example.jpg")
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
+func TestOpenBlobWrite(t *testing.T) {
+	canvas := New()
+
+    file, err := os.Open("_examples/input/example.png")
+    if err != nil {
+		t.Errorf("Error: %s\n", err)
+    }
+
+    defer file.Close()
+
+    buf := make([]byte, 1191346, 1191346)
+    num, err := file.Read(buf)
+    if err != nil {
+		t.Errorf("Error: %s\n", err)
+    }
+
+	err = canvas.OpenBlob(buf, uint(num))
 
 	if err == nil {
 		canvas.AutoOrientate()
