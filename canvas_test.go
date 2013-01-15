@@ -436,3 +436,31 @@ func TestCrop(t *testing.T) {
 		t.Errorf("Failed to create blank image.")
 	}
 }
+
+func TestSigmoidalContrast(t *testing.T) {
+	canvas := New()
+	defer canvas.Destroy()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.SigmoidalContrast(false, 2.5, 50)
+		canvas.Write("_examples/output/example-sigmoidalcontrast.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
+	}
+}
+
+func TestContrast(t *testing.T) {
+	canvas := New()
+	defer canvas.Destroy()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.Contrast(true)
+		canvas.Write("_examples/output/example-contrast.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
+	}
+}
