@@ -1,7 +1,10 @@
 package canvas
 
 import (
+	"bytes"
+	"io"
 	"math"
+	"os"
 	"testing"
 )
 
@@ -37,6 +40,37 @@ func TestOpenWrite(t *testing.T) {
 	canvas := New()
 
 	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.AutoOrientate()
+
+		canvas.SetQuality(90)
+
+		canvas.Write("_examples/output/example.jpg")
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
+func TestOpenBlobWrite(t *testing.T) {
+	canvas := New()
+
+	file, err := os.Open("_examples/input/example.png")
+	if err != nil {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	defer file.Close()
+
+	buf := &bytes.Buffer{}
+	num, err := io.Copy(buf, file)
+	if err != nil {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	err = canvas.OpenBlob(buf.Bytes(), uint(num))
 
 	if err == nil {
 		canvas.AutoOrientate()
@@ -400,6 +434,34 @@ func TestCrop(t *testing.T) {
 	if err == nil {
 		canvas.Crop(100, 200, 200, 100)
 		canvas.Write("_examples/output/example-crop.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
+	}
+}
+
+func TestSigmoidalContrast(t *testing.T) {
+	canvas := New()
+	defer canvas.Destroy()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.SigmoidalContrast(false, 2.5, 50)
+		canvas.Write("_examples/output/example-sigmoidalcontrast.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
+	}
+}
+
+func TestContrast(t *testing.T) {
+	canvas := New()
+	defer canvas.Destroy()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.Contrast(true)
+		canvas.Write("_examples/output/example-contrast.png")
 	} else {
 		t.Errorf("Failed to create blank image.")
 	}
