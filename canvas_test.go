@@ -1,9 +1,11 @@
 package canvas
 
 import (
+	"bytes"
+	"io"
 	"math"
+	"os"
 	"testing"
-    "os"
 )
 
 /*
@@ -55,20 +57,20 @@ func TestOpenWrite(t *testing.T) {
 func TestOpenBlobWrite(t *testing.T) {
 	canvas := New()
 
-    file, err := os.Open("_examples/input/example.png")
-    if err != nil {
+	file, err := os.Open("_examples/input/example.png")
+	if err != nil {
 		t.Errorf("Error: %s\n", err)
-    }
+	}
 
-    defer file.Close()
+	defer file.Close()
 
-    buf := make([]byte, 1191346, 1191346)
-    num, err := file.Read(buf)
-    if err != nil {
+	buf := &bytes.Buffer{}
+	num, err := io.Copy(buf, file)
+	if err != nil {
 		t.Errorf("Error: %s\n", err)
-    }
+	}
 
-	err = canvas.OpenBlob(buf, uint(num))
+	err = canvas.OpenBlob(buf.Bytes(), uint(num))
 
 	if err == nil {
 		canvas.AutoOrientate()
