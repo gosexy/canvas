@@ -252,13 +252,8 @@ func (self *Canvas) Flip() error {
 
 //  adjusts the contrast of an image with a non-linear sigmoidal contrast algorithm. Increase the contrast of the image using a sigmoidal transfer function without saturating highlights or shadows. Contrast indicates how much to increase the contrast (0 is none; 3 is typical; 20 is pushing it); mid-point indicates where midtones fall in the resultant image (0 is white; 50 is middle-gray; 100 is black). Set sharpen to true to increase the image contrast otherwise the contrast is reduced.
 func (self *Canvas) SigmoidalContrast(sharpen bool, alpha float64, beta float64) error {
-	var incr C.MagickBooleanType
-	incr = C.MagickFalse
-	if sharpen {
-		incr = C.MagickTrue
-	}
-	success := C.MagickSigmoidalContrastImage(self.wand, incr, C.double(alpha), C.double(beta))
-	if success == C.MagickFalse {
+	status := C.MagickSigmoidalContrastImage(self.wand, magickBoolean(sharpen), C.double(alpha), C.double(beta))
+	if status == C.MagickFalse {
 		return fmt.Errorf("Could not contrast image: %s", self.Error())
 	}
 	return nil
@@ -266,13 +261,8 @@ func (self *Canvas) SigmoidalContrast(sharpen bool, alpha float64, beta float64)
 
 // enhances the intensity differences between the lighter and darker elements of the image. Set sharpen to a value other than 0 to increase the image contrast otherwise the contrast is reduced.
 func (self *Canvas) Contrast(sharpen bool) error {
-	var incr C.MagickBooleanType
-	incr = C.MagickFalse
-	if sharpen {
-		incr = C.MagickTrue
-	}
-	success := C.MagickContrastImage(self.wand, incr)
-	if success == C.MagickFalse {
+	status := C.MagickContrastImage(self.wand, magickBoolean(sharpen))
+	if status == C.MagickFalse {
 		return fmt.Errorf("Could not contrast image: %s", self.Error())
 	}
 	return nil
@@ -437,10 +427,17 @@ func (self *Canvas) SetColor(color string) (bool) {
 
 // Sets canvas' background color.
 func (self *Canvas) SetBackgroundColor(color string) error {
-	C.PixelSetColor(self.bg, C.CString(color))
-	success := C.MagickSetImageBackgroundColor(self.wand, self.bg)
+	var status C.MagickBooleanType
 
-	if success == C.MagickFalse {
+	status = C.PixelSetColor(self.bg, C.CString(color))
+
+	if status == C.MagickFalse {
+		return fmt.Errorf("Could not set pixel color: %s", self.Error())
+	}
+
+	status = C.MagickSetImageBackgroundColor(self.wand, self.bg)
+
+	if status == C.MagickFalse {
 		return fmt.Errorf("Could not set background color: %s", self.Error())
 	}
 
