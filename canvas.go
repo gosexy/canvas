@@ -609,13 +609,44 @@ func (self *Canvas) Update() error {
 
 // Destroys canvas.
 func (self *Canvas) Destroy() error {
-	if self.wand != nil {
+
+	if self.bg != nil {
+		C.DestroyPixelWand(self.bg)
+		self.bg = nil
+	}
+
+	if self.fg != nil {
+		C.DestroyPixelWand(self.fg)
+		self.fg = nil
+	}
+
+	if self.stroke != nil {
+		C.DestroyPixelWand(self.stroke)
+		self.stroke = nil
+	}
+
+	if self.fill != nil {
+		C.DestroyPixelWand(self.fill)
+		self.fill = nil
+	}
+
+	if self.drawing != nil {
+		C.DestroyDrawingWand(self.drawing)
+		self.drawing = nil
+	}
+
+	if self.wand == nil {
+		return fmt.Errorf("Nothing to destroy")
+	} else {
 		C.DestroyMagickWand(self.wand)
 		self.wand = nil
-		return nil
 	}
-	return fmt.Errorf("Nothing to destroy")
-	//C.MagickWandTerminus()
+
+	return nil
+}
+
+func Finalize() {
+	C.MagickWandTerminus()
 }
 
 // Creates an empty canvas of the given dimensions.
