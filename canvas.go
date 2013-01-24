@@ -218,9 +218,11 @@ func (self *Canvas) Metadata() map[string]string {
 // Returns the latest error reported by the MagickWand API.
 func (self *Canvas) Error() error {
 	var t C.ExceptionType
-	message := C.MagickGetException(self.wand, &t)
+	ptr := C.MagickGetException(self.wand, &t)
+	message := C.GoString(ptr)
 	C.MagickClearException(self.wand)
-	return fmt.Errorf(C.GoString(message))
+	C.MagickRelinquishMemory(unsafe.Pointer(ptr))
+	return fmt.Errorf(message)
 }
 
 // Associates a metadata key with its value.
@@ -758,6 +760,23 @@ func (self *Canvas) SetHue(factor float64) error {
 	}
 
 	return nil
+}
+
+// Sets the format of a particular image
+func (self *Canvas) SetFormat(format string) error {
+	if C.MagickSetImageFormat(self.wand, C.CString(format)) != C.MagickFalse {
+		return fmt.Errorf("Coluld not set format : %s", self.Error())
+	}
+
+	return nil
+}
+
+// Implements direct to memory image formats. It returns the image as a blob
+func (self *Canvas) Blob(length *uint) []byte {
+	ptr := unsafe.Pointer(C.MagickGetImageBlob(self.wand, (*C.size_t)(unsafe.Pointer(length))))
+	data := C.GoBytes(ptr, C.int(*length))
+	C.MagickRelinquishMemory(ptr)
+	return data
 }
 
 // Returns a new canvas object.
