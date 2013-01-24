@@ -112,7 +112,7 @@ func magickBoolean(value bool) C.MagickBooleanType {
 }
 
 // Opens an image file, returns nil on success, error otherwise.
-func (self Canvas) Open(filename string) error {
+func (self *Canvas) Open(filename string) error {
 	stat, err := os.Stat(filename)
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func (self Canvas) Open(filename string) error {
 }
 
 // Reads an image or image sequence from a blob.
-func (self Canvas) OpenBlob(blob []byte, length uint) error {
+func (self *Canvas) OpenBlob(blob []byte, length uint) error {
 	status := C.MagickReadImageBlob(self.wand, unsafe.Pointer(&blob[0]), C.size_t(length))
 	if status == C.MagickFalse {
 		return fmt.Errorf(`Could not open image from blob: %s`, self.Error())
@@ -138,7 +138,7 @@ func (self Canvas) OpenBlob(blob []byte, length uint) error {
 }
 
 // Auto-orientates canvas based on its original image's EXIF metadata
-func (self Canvas) AutoOrientate() error {
+func (self *Canvas) AutoOrientate() error {
 
 	data := self.Metadata()
 
@@ -191,7 +191,7 @@ func (self Canvas) AutoOrientate() error {
 }
 
 // Returns all metadata keys from the currently loaded image.
-func (self Canvas) Metadata() map[string]string {
+func (self *Canvas) Metadata() map[string]string {
 	var n C.ulong
 	var i C.ulong
 
@@ -216,7 +216,7 @@ func (self Canvas) Metadata() map[string]string {
 }
 
 // Returns the latest error reported by the MagickWand API.
-func (self Canvas) Error() error {
+func (self *Canvas) Error() error {
 	var t C.ExceptionType
 	message := C.MagickGetException(self.wand, &t)
 	C.MagickClearException(self.wand)
@@ -224,7 +224,7 @@ func (self Canvas) Error() error {
 }
 
 // Associates a metadata key with its value.
-func (self Canvas) SetMetadata(key string, value string) error {
+func (self *Canvas) SetMetadata(key string, value string) error {
 	success := C.MagickSetImageProperty(self.wand, C.CString(key), C.CString(value))
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not set metadata: %s", self.Error())
@@ -233,7 +233,7 @@ func (self Canvas) SetMetadata(key string, value string) error {
 }
 
 // Creates a horizontal mirror image by reflecting the pixels around the central y-axis.
-func (self Canvas) Flop() error {
+func (self *Canvas) Flop() error {
 	success := C.MagickFlopImage(self.wand)
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not flop image: %s", self.Error())
@@ -242,7 +242,7 @@ func (self Canvas) Flop() error {
 }
 
 // Creates a vertical mirror image by reflecting the pixels around the central x-axis.
-func (self Canvas) Flip() error {
+func (self *Canvas) Flip() error {
 	success := C.MagickFlipImage(self.wand)
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not flop image: %s", self.Error())
@@ -251,7 +251,7 @@ func (self Canvas) Flip() error {
 }
 
 //  adjusts the contrast of an image with a non-linear sigmoidal contrast algorithm. Increase the contrast of the image using a sigmoidal transfer function without saturating highlights or shadows. Contrast indicates how much to increase the contrast (0 is none; 3 is typical; 20 is pushing it); mid-point indicates where midtones fall in the resultant image (0 is white; 50 is middle-gray; 100 is black). Set sharpen to true to increase the image contrast otherwise the contrast is reduced.
-func (self Canvas) SigmoidalContrast(sharpen bool, alpha float64, beta float64) error {
+func (self *Canvas) SigmoidalContrast(sharpen bool, alpha float64, beta float64) error {
 	var incr C.MagickBooleanType
 	incr = C.MagickFalse
 	if sharpen {
@@ -265,7 +265,7 @@ func (self Canvas) SigmoidalContrast(sharpen bool, alpha float64, beta float64) 
 }
 
 // enhances the intensity differences between the lighter and darker elements of the image. Set sharpen to a value other than 0 to increase the image contrast otherwise the contrast is reduced.
-func (self Canvas) Contrast(sharpen bool) error {
+func (self *Canvas) Contrast(sharpen bool) error {
 	var incr C.MagickBooleanType
 	incr = C.MagickFalse
 	if sharpen {
@@ -279,7 +279,7 @@ func (self Canvas) Contrast(sharpen bool) error {
 }
 
 // Clones an image to another canvas
-func (self Canvas) Clone() *Canvas {
+func (self *Canvas) Clone() *Canvas {
 	clone := New()
 
 	clone.SetBackgroundColor("none")
@@ -292,7 +292,7 @@ func (self Canvas) Clone() *Canvas {
 }
 
 // Creates a centered thumbnail of the canvas.
-func (self Canvas) Thumbnail(width uint, height uint) error {
+func (self *Canvas) Thumbnail(width uint, height uint) error {
 
 	var ratio float64
 
@@ -338,7 +338,7 @@ func (self Canvas) Thumbnail(width uint, height uint) error {
 }
 
 // Puts a canvas on top of the current one.
-func (self Canvas) AppendCanvas(source Canvas, x int, y int) error {
+func (self *Canvas) AppendCanvas(source *Canvas, x int, y int) error {
 	success := C.MagickCompositeImage(self.wand, source.wand, C.OverCompositeOp, C.long(x), C.long(y))
 
 	if success == C.MagickFalse {
@@ -349,7 +349,7 @@ func (self Canvas) AppendCanvas(source Canvas, x int, y int) error {
 }
 
 // Rotates the whole canvas.
-func (self Canvas) RotateCanvas(rad float64) error {
+func (self *Canvas) RotateCanvas(rad float64) error {
 	success := C.MagickRotateImage(self.wand, self.bg, C.double(RAD_TO_DEG*rad))
 
 	if success == C.MagickFalse {
@@ -360,17 +360,17 @@ func (self Canvas) RotateCanvas(rad float64) error {
 }
 
 // Returns canvas' width.
-func (self Canvas) Width() uint {
+func (self *Canvas) Width() uint {
 	return uint(C.MagickGetImageWidth(self.wand))
 }
 
 // Returns canvas' height.
-func (self Canvas) Height() uint {
+func (self *Canvas) Height() uint {
 	return uint(C.MagickGetImageHeight(self.wand))
 }
 
 // Writes canvas to a file, returns true on success.
-func (self Canvas) Write(filename string) error {
+func (self *Canvas) Write(filename string) error {
 	err := self.Update()
 
 	if err != nil {
@@ -387,7 +387,7 @@ func (self Canvas) Write(filename string) error {
 }
 
 // Changes the size of the canvas, returns true on success.
-func (self Canvas) Resize(width uint, height uint) error {
+func (self *Canvas) Resize(width uint, height uint) error {
 	success := C.MagickResizeImage(self.wand, C.ulong(width), C.ulong(height), C.GaussianFilter, C.double(1.0))
 
 	if success == C.MagickFalse {
@@ -398,7 +398,7 @@ func (self Canvas) Resize(width uint, height uint) error {
 }
 
 // Adaptively changes the size of the canvas, returns true on success.
-func (self Canvas) AdaptiveResize(width uint, height uint) error {
+func (self *Canvas) AdaptiveResize(width uint, height uint) error {
 	success := C.MagickAdaptiveResizeImage(self.wand, C.ulong(width), C.ulong(height))
 
 	if success == C.MagickFalse {
@@ -409,7 +409,7 @@ func (self Canvas) AdaptiveResize(width uint, height uint) error {
 }
 
 // Changes the compression quality of the canvas. Ranges from 1 (lowest) to 100 (highest).
-func (self Canvas) SetQuality(quality uint) error {
+func (self *Canvas) SetQuality(quality uint) error {
 	success := C.MagickSetImageCompressionQuality(self.wand, C.ulong(quality))
 
 	if success == C.MagickFalse {
@@ -420,13 +420,13 @@ func (self Canvas) SetQuality(quality uint) error {
 }
 
 // Returns the compression quality of the canvas. Ranges from 1 (lowest) to 100 (highest).
-func (self Canvas) Quality() uint {
+func (self *Canvas) Quality() uint {
 	return uint(C.MagickGetImageCompressionQuality(self.wand))
 }
 
 /*
 // Sets canvas's foreground color.
-func (self Canvas) SetColor(color string) (bool) {
+func (self *Canvas) SetColor(color string) (bool) {
   status := C.PixelSetColor(self.fg, C.CString(color))
   if status == C.MagickFalse {
     return false
@@ -436,7 +436,7 @@ func (self Canvas) SetColor(color string) (bool) {
 */
 
 // Sets canvas' background color.
-func (self Canvas) SetBackgroundColor(color string) error {
+func (self *Canvas) SetBackgroundColor(color string) error {
 	C.PixelSetColor(self.bg, C.CString(color))
 	success := C.MagickSetImageBackgroundColor(self.wand, self.bg)
 
@@ -448,17 +448,17 @@ func (self Canvas) SetBackgroundColor(color string) error {
 }
 
 // Returns canvas' background color.
-func (self Canvas) BackgroundColor() string {
+func (self *Canvas) BackgroundColor() string {
 	return getPixelHexColor(self.bg)
 }
 
 // Sets antialiasing setting for the current drawing stroke.
-func (self Canvas) SetStrokeAntialias(value bool) {
+func (self *Canvas) SetStrokeAntialias(value bool) {
 	C.DrawSetStrokeAntialias(self.drawing, magickBoolean(value))
 }
 
 // Returns antialiasing setting for the current drawing stroke.
-func (self Canvas) StrokeAntialias() bool {
+func (self *Canvas) StrokeAntialias() bool {
 	value := C.DrawGetStrokeAntialias(self.drawing)
 	if value == C.MagickTrue {
 		return true
@@ -467,118 +467,118 @@ func (self Canvas) StrokeAntialias() bool {
 }
 
 // Sets the width of the stroke on the current drawing surface.
-func (self Canvas) SetStrokeWidth(value float64) {
+func (self *Canvas) SetStrokeWidth(value float64) {
 	C.DrawSetStrokeWidth(self.drawing, C.double(value))
 }
 
 // Returns the width of the stroke on the current drawing surface.
-func (self Canvas) StrokeWidth() float64 {
+func (self *Canvas) StrokeWidth() float64 {
 	return float64(C.DrawGetStrokeWidth(self.drawing))
 }
 
 // Sets the opacity of the stroke on the current drawing surface.
-func (self Canvas) SetStrokeOpacity(value float64) {
+func (self *Canvas) SetStrokeOpacity(value float64) {
 	C.DrawSetStrokeOpacity(self.drawing, C.double(value))
 }
 
 // Returns the opacity of the stroke on the current drawing surface.
-func (self Canvas) StrokeOpacity() float64 {
+func (self *Canvas) StrokeOpacity() float64 {
 	return float64(C.DrawGetStrokeOpacity(self.drawing))
 }
 
 // Sets the type of the line cap on the current drawing surface.
-func (self Canvas) SetStrokeLineCap(value uint) {
+func (self *Canvas) SetStrokeLineCap(value uint) {
 	C.DrawSetStrokeLineCap(self.drawing, C.LineCap(value))
 }
 
 // Returns the type of the line cap on the current drawing surface.
-func (self Canvas) StrokeLineCap() uint {
+func (self *Canvas) StrokeLineCap() uint {
 	return uint(C.DrawGetStrokeLineCap(self.drawing))
 }
 
 // Sets the type of the line join on the current drawing surface.
-func (self Canvas) SetStrokeLineJoin(value uint) {
+func (self *Canvas) SetStrokeLineJoin(value uint) {
 	C.DrawSetStrokeLineJoin(self.drawing, C.LineJoin(value))
 }
 
 // Returns the type of the line join on the current drawing surface.
-func (self Canvas) StrokeLineJoin() uint {
+func (self *Canvas) StrokeLineJoin() uint {
 	return uint(C.DrawGetStrokeLineJoin(self.drawing))
 }
 
 /*
-func (self Canvas) SetFillRule(value int) {
+func (self *Canvas) SetFillRule(value int) {
   C.DrawSetFillRule(self.drawing, C.FillRule(value))
 }
 */
 
 // Sets the fill color for enclosed areas on the current drawing surface.
-func (self Canvas) SetFillColor(color string) {
+func (self *Canvas) SetFillColor(color string) {
 	C.PixelSetColor(self.fill, C.CString(color))
 	C.DrawSetFillColor(self.drawing, self.fill)
 }
 
 // Returns the fill color for enclosed areas on the current drawing surface.
-func (self Canvas) FillColor() string {
+func (self *Canvas) FillColor() string {
 	return getPixelHexColor(self.fill)
 }
 
 // Sets the stroke color on the current drawing surface.
-func (self Canvas) SetStrokeColor(color string) {
+func (self *Canvas) SetStrokeColor(color string) {
 	C.PixelSetColor(self.stroke, C.CString(color))
 	C.DrawSetStrokeColor(self.drawing, self.stroke)
 }
 
 // Returns the stroke color on the current drawing surface.
-func (self Canvas) StrokeColor() string {
+func (self *Canvas) StrokeColor() string {
 	return getPixelHexColor(self.stroke)
 }
 
 // Draws a circle over the current drawing surface.
-func (self Canvas) Circle(radius float64) {
+func (self *Canvas) Circle(radius float64) {
 	C.DrawCircle(self.drawing, C.double(0), C.double(0), C.double(radius), C.double(0))
 }
 
 // Draws a rectangle over the current drawing surface.
-func (self Canvas) Rectangle(x float64, y float64) {
+func (self *Canvas) Rectangle(x float64, y float64) {
 	C.DrawRectangle(self.drawing, C.double(0), C.double(0), C.double(x), C.double(y))
 }
 
 // Moves the current coordinate system origin to the specified coordinate.
-func (self Canvas) Translate(x float64, y float64) {
+func (self *Canvas) Translate(x float64, y float64) {
 	C.DrawTranslate(self.drawing, C.double(x), C.double(y))
 }
 
 // Applies a scaling factor to the units of the current coordinate system.
-func (self Canvas) Scale(x float64, y float64) {
+func (self *Canvas) Scale(x float64, y float64) {
 	C.DrawScale(self.drawing, C.double(x), C.double(y))
 }
 
 // Draws a line starting on the current coordinate system origin and ending on the specified coordinates.
-func (self Canvas) Line(x float64, y float64) {
+func (self *Canvas) Line(x float64, y float64) {
 	C.DrawLine(self.drawing, C.double(0), C.double(0), C.double(x), C.double(y))
 }
 
 /*
-func (self Canvas) Skew(x float64, y float64) {
+func (self *Canvas) Skew(x float64, y float64) {
   C.DrawSkewX(self.drawing, C.double(x))
   C.DrawSkewY(self.drawing, C.double(y))
 }
 */
 
 // Applies a rotation of a given angle (in radians) on the current coordinate system.
-func (self Canvas) Rotate(rad float64) {
+func (self *Canvas) Rotate(rad float64) {
 	deg := RAD_TO_DEG * rad
 	C.DrawRotate(self.drawing, C.double(deg))
 }
 
 // Draws an ellipse centered at the current coordinate system's origin.
-func (self Canvas) Ellipse(a float64, b float64) {
+func (self *Canvas) Ellipse(a float64, b float64) {
 	C.DrawEllipse(self.drawing, C.double(0), C.double(0), C.double(a), C.double(b), 0, 360)
 }
 
 // Clones the current drawing surface and stores it in a stack.
-func (self Canvas) PushDrawing() error {
+func (self *Canvas) PushDrawing() error {
 	success := C.PushDrawingWand(self.drawing)
 
 	if success == C.MagickFalse {
@@ -589,7 +589,7 @@ func (self Canvas) PushDrawing() error {
 }
 
 // Destroys the current drawing surface and returns the latest surface that was pushed to the stack.
-func (self Canvas) PopDrawing() error {
+func (self *Canvas) PopDrawing() error {
 	success := C.PopDrawingWand(self.drawing)
 
 	if success == C.MagickFalse {
@@ -600,7 +600,7 @@ func (self Canvas) PopDrawing() error {
 }
 
 // Copies a drawing surface to the canvas.
-func (self Canvas) Update() error {
+func (self *Canvas) Update() error {
 	success := C.MagickDrawImage(self.wand, self.drawing)
 
 	if success == C.MagickFalse {
@@ -611,7 +611,7 @@ func (self Canvas) Update() error {
 }
 
 // Destroys canvas.
-func (self Canvas) Destroy() error {
+func (self *Canvas) Destroy() error {
 	if self.wand != nil {
 		C.DestroyMagickWand(self.wand)
 		self.wand = nil
@@ -622,7 +622,7 @@ func (self Canvas) Destroy() error {
 }
 
 // Creates an empty canvas of the given dimensions.
-func (self Canvas) Blank(width uint, height uint) error {
+func (self *Canvas) Blank(width uint, height uint) error {
 	success := C.MagickNewImage(self.wand, C.ulong(width), C.ulong(height), self.bg)
 
 	if success == C.MagickFalse {
@@ -633,7 +633,7 @@ func (self Canvas) Blank(width uint, height uint) error {
 }
 
 // Convolves the canvas with a Gaussian function given its standard deviation.
-func (self Canvas) Blur(sigma float64) error {
+func (self *Canvas) Blur(sigma float64) error {
 	success := C.MagickBlurImage(self.wand, C.double(0), C.double(sigma))
 
 	if success == C.MagickFalse {
@@ -644,7 +644,7 @@ func (self Canvas) Blur(sigma float64) error {
 }
 
 // Adaptively blurs the image by blurring less intensely near the edges and more intensely far from edges.
-func (self Canvas) AdaptiveBlur(sigma float64) error {
+func (self *Canvas) AdaptiveBlur(sigma float64) error {
 	success := C.MagickAdaptiveBlurImage(self.wand, C.double(0), C.double(sigma))
 
 	if success == C.MagickFalse {
@@ -655,7 +655,7 @@ func (self Canvas) AdaptiveBlur(sigma float64) error {
 }
 
 // Adds random noise to the canvas.
-func (self Canvas) AddNoise() error {
+func (self *Canvas) AddNoise() error {
 	success := C.MagickAddNoiseImage(self.wand, C.GaussianNoise)
 
 	if success == C.MagickFalse {
@@ -666,7 +666,7 @@ func (self Canvas) AddNoise() error {
 }
 
 // Removes a region of a canvas and collapses the canvas to occupy the removed portion.
-func (self Canvas) Chop(x int, y int, width uint, height uint) error {
+func (self *Canvas) Chop(x int, y int, width uint, height uint) error {
 	success := C.MagickChopImage(self.wand, C.ulong(width), C.ulong(height), C.long(x), C.long(y))
 
 	if success == C.MagickFalse {
@@ -677,7 +677,7 @@ func (self Canvas) Chop(x int, y int, width uint, height uint) error {
 }
 
 // Extracts a region from the canvas.
-func (self Canvas) Crop(x int, y int, width uint, height uint) error {
+func (self *Canvas) Crop(x int, y int, width uint, height uint) error {
 	success := C.MagickCropImage(self.wand, C.ulong(width), C.ulong(height), C.long(x), C.long(y))
 
 	if success == C.MagickFalse {
@@ -688,7 +688,7 @@ func (self Canvas) Crop(x int, y int, width uint, height uint) error {
 }
 
 // Adjusts the canvas's brightness given a factor (-1.0 thru 1.0)
-func (self Canvas) SetBrightness(factor float64) error {
+func (self *Canvas) SetBrightness(factor float64) error {
 
 	factor = math.Max(-1, factor)
 	factor = math.Min(1, factor)
@@ -703,7 +703,7 @@ func (self Canvas) SetBrightness(factor float64) error {
 }
 
 // Adjusts the canvas's saturation given a factor (-1.0 thru 1.0)
-func (self Canvas) SetSaturation(factor float64) error {
+func (self *Canvas) SetSaturation(factor float64) error {
 
 	factor = math.Max(-1, factor)
 	factor = math.Min(1, factor)
@@ -718,7 +718,7 @@ func (self Canvas) SetSaturation(factor float64) error {
 }
 
 // Adjusts the canvas's hue given a factor (-1.0 thru 1.0)
-func (self Canvas) SetHue(factor float64) error {
+func (self *Canvas) SetHue(factor float64) error {
 
 	factor = math.Max(-1, factor)
 	factor = math.Min(1, factor)

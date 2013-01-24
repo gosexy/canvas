@@ -103,6 +103,25 @@ func TestThumbnail(t *testing.T) {
 	canvas.Destroy()
 }
 
+// https://github.com/gosexy/canvas/issues/3
+func TestThumbnailIssue3(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.AutoOrientate()
+
+		canvas.Thumbnail(2000, 2000)
+
+		canvas.Write("_examples/output/example-bigger-than-original-thumbnail.png")
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
 func TestClone(t *testing.T) {
 	canvas := New()
 
