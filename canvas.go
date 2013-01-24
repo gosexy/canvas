@@ -24,7 +24,7 @@
 package canvas
 
 /*
-#cgo LDFLAGS: -lMagickWand -lMagickCore
+#cgo pkg-config: MagickWand
 #cgo CFLAGS: -fopenmp -I./_include
 
 #include <wand/magick_wand.h>
