@@ -283,7 +283,15 @@ func (self *Canvas) Clone() *Canvas {
 	return clone
 }
 
-// Creates a centered thumbnail of the canvas.
+// Converts the current image into a thumbnail of the specified
+// width and height preserving ratio. It uses Crop() to clip the
+// image to the specified area.
+//
+// If width or height are bigger than the current image, a centered
+// thumbnail will be produced.
+//
+// Is width and height are smaller than the current image, the image
+// will be resized and cropped, if needed.
 func (self *Canvas) Thumbnail(width uint, height uint) error {
 
 	var ratio float64
