@@ -485,3 +485,64 @@ func TestContrast(t *testing.T) {
 		t.Errorf("Failed to create blank image.")
 	}
 }
+
+func BenchmarkNew(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		canvas := New()
+		canvas.Destroy()
+	}
+}
+
+func BenchmarkNewOpen(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		canvas := New()
+
+		err := canvas.Open("_examples/input/example.png")
+
+		if err != nil {
+			b.Errorf("Error: %s\n", err)
+		}
+
+		canvas.Destroy()
+	}
+}
+
+func BenchmarkSmallerThumbnail(b *testing.B) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.AutoOrientate()
+
+		for i := 0; i < b.N; i++ {
+			canvas.Thumbnail(200, 200)
+		}
+
+		canvas.Write("_examples/output/example-thumbnail.png")
+	} else {
+		b.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
+func BenchmarkBiggerThumbnail(b *testing.B) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.AutoOrientate()
+
+		for i := 0; i < b.N; i++ {
+			canvas.Thumbnail(2000, 2000)
+		}
+
+		canvas.Write("_examples/output/example-thumbnail.png")
+	} else {
+		b.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
