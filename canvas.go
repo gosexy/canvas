@@ -790,7 +790,7 @@ func (self *Canvas) SetHue(factor float64) error {
 // Sets the format of a particular image
 func (self *Canvas) SetFormat(format string) error {
 	if C.MagickSetImageFormat(self.wand, C.CString(format)) != C.MagickFalse {
-		return fmt.Errorf("Coluld not set format : %s", self.Error())
+		return fmt.Errorf("Could not set format : %s", self.Error())
 	}
 
 	return nil
