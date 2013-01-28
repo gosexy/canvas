@@ -1,7 +1,10 @@
 package canvas
 
 import (
+	"bytes"
+	"io"
 	"math"
+	"os"
 	"testing"
 )
 
@@ -51,6 +54,37 @@ func TestOpenWrite(t *testing.T) {
 	canvas.Destroy()
 }
 
+func TestOpenBlobWrite(t *testing.T) {
+	canvas := New()
+
+	file, err := os.Open("_examples/input/example.png")
+	if err != nil {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	defer file.Close()
+
+	buf := &bytes.Buffer{}
+	num, err := io.Copy(buf, file)
+	if err != nil {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	err = canvas.OpenBlob(buf.Bytes(), uint(num))
+
+	if err == nil {
+		canvas.AutoOrientate()
+
+		canvas.SetQuality(90)
+
+		canvas.Write("_examples/output/example.jpg")
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
 func TestThumbnail(t *testing.T) {
 	canvas := New()
 
@@ -78,8 +112,47 @@ func TestFit(t *testing.T) {
 		canvas.AutoOrientate()
 
 		canvas.Fit(100, 100)
-
+		
 		canvas.Write("_examples/output/example-fit.png")
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+// https://github.com/gosexy/canvas/issues/3
+func TestThumbnailIssue3(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.AutoOrientate()
+
+		canvas.Thumbnail(2000, 2000)
+
+		canvas.Write("_examples/output/example-bigger-than-original-thumbnail.png")
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
+func TestClone(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+
+		clone := canvas.Clone()
+		clone.Resize(100, 100)
+		clone.Write("_examples/output/cloned-100x100.png")
+
+		clone.Destroy()
+
+		canvas.Write("_examples/output/not-cloned.png")
 	} else {
 		t.Errorf("Error: %s\n", err)
 	}
@@ -400,4 +473,93 @@ func TestCrop(t *testing.T) {
 	} else {
 		t.Errorf("Failed to create blank image.")
 	}
+}
+
+func TestSigmoidalContrast(t *testing.T) {
+	canvas := New()
+	defer canvas.Destroy()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.SigmoidalContrast(false, 2.5, 50)
+		canvas.Write("_examples/output/example-sigmoidalcontrast.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
+	}
+}
+
+func TestContrast(t *testing.T) {
+	canvas := New()
+	defer canvas.Destroy()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.Contrast(true)
+		canvas.Write("_examples/output/example-contrast.png")
+	} else {
+		t.Errorf("Failed to create blank image.")
+	}
+}
+
+func BenchmarkNew(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		canvas := New()
+		canvas.Destroy()
+	}
+}
+
+func BenchmarkNewOpen(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		canvas := New()
+
+		err := canvas.Open("_examples/input/example.png")
+
+		if err != nil {
+			b.Errorf("Error: %s\n", err)
+		}
+
+		canvas.Destroy()
+	}
+}
+
+func BenchmarkSmallerThumbnail(b *testing.B) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.AutoOrientate()
+
+		for i := 0; i < b.N; i++ {
+			canvas.Thumbnail(200, 200)
+		}
+
+		canvas.Write("_examples/output/example-thumbnail.png")
+	} else {
+		b.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
+func BenchmarkBiggerThumbnail(b *testing.B) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.png")
+
+	if err == nil {
+		canvas.AutoOrientate()
+
+		for i := 0; i < b.N; i++ {
+			canvas.Thumbnail(2000, 2000)
+		}
+
+		canvas.Write("_examples/output/example-thumbnail.png")
+	} else {
+		b.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
 }
