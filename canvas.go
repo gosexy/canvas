@@ -304,7 +304,7 @@ func (self *Canvas) Thumbnail(width uint, height uint) error {
 }
 
 // Creates a thumbnail that fits within the given dimensions
-func (self Canvas) Fit(width uint, height uint) error {
+func (self *Canvas) Fit(width uint, height uint) error {
 
 	var ratio float64
 
@@ -315,7 +315,7 @@ func (self Canvas) Fit(width uint, height uint) error {
 	return self.thumbnail(width, height, ratio)
 }
 
-func (self Canvas) thumbnail(width uint, height uint, ratio float64) error {
+func (self *Canvas) thumbnail(width uint, height uint, ratio float64) error {
 
 	if ratio < 1.0 {
 		// Origin image is smaller than the thumbnail image.
