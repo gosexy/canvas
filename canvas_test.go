@@ -173,6 +173,22 @@ func TestResizeWithFilter(t *testing.T) {
 	canvas.Destroy()
 }
 
+func TestGetImageBlob(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/resizeWithFilter.jpg")
+
+	if err == nil {
+                if blob, err := canvas.GetImageBlob(); err != nil || len(blob) == 0 {
+		    t.Errorf("Error: can not get image blob")
+                }
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
 func TestBlank(t *testing.T) {
 	canvas := New()
 
