@@ -179,9 +179,9 @@ func TestGetImageBlob(t *testing.T) {
 	err := canvas.Open("_examples/input/resizeWithFilter.jpg")
 
 	if err == nil {
-                if blob, err := canvas.GetImageBlob(); err != nil || len(blob) == 0 {
-		    t.Errorf("Error: can not get image blob")
-                }
+		if blob, err := canvas.GetImageBlob(); err != nil || len(blob) == 0 {
+			t.Errorf("Error: can not get image blob")
+		}
 	} else {
 		t.Errorf("Error: %s\n", err)
 	}
