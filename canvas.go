@@ -93,10 +93,10 @@ var (
         BARTLETT_FILTER          = uint(C.BartlettFilter)
         LAGRANGE_FILTER          = uint(C.LagrangeFilter)
         LANCZOS_FILTER           = uint(C.LanczosFilter)
-        //LANCZOS_SHARP_FILTER     = uint(C.LanczosSharpFilter)
-        //LANCZOS2_FILTER          = uint(C.Lanczos2Filter)
-        //LANCZOS2_SHARP_FILTER    = uint(C.Lanczos2SharpFilter)
-        //ROBIDOUX_FILTER          = uint(C.RobidouxFilter)
+        LANCZOS_SHARP_FILTER     = uint(C.LanczosSharpFilter)
+        LANCZOS2_FILTER          = uint(C.Lanczos2Filter)
+        LANCZOS2_SHARP_FILTER    = uint(C.Lanczos2SharpFilter)
+        ROBIDOUX_FILTER          = uint(C.RobidouxFilter)
 )
 
 // Holds a Canvas object
