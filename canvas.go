@@ -69,6 +69,34 @@ var (
 	RIGHT_TOP_ORIENTATION    = uint(C.RightTopOrientation)
 	RIGHT_BOTTOM_ORIENTATION = uint(C.RightBottomOrientation)
 	LEFT_BOTTOM_ORIENTATION  = uint(C.LeftBottomOrientation)
+
+        POINT_FILTER             = uint(C.PointFilter)
+        BOX_FILTER               = uint(C.BoxFilter)
+        TRIANGLE_FILTER          = uint(C.TriangleFilter)
+        HERMITE_FILTER           = uint(C.HermiteFilter)
+        HANNING_FILTER           = uint(C.HanningFilter)
+        HAMMING_FILTER           = uint(C.HammingFilter)
+        BLACKMAN_FILTER          = uint(C.BlackmanFilter)
+        GAUSSIAN_FILTER          = uint(C.GaussianFilter)
+        QUADRATIC_FILTER         = uint(C.QuadraticFilter)
+        CUBIC_FILTER             = uint(C.CubicFilter)
+        CATROM_FILTER            = uint(C.CatromFilter)
+        MITCHEL_FILTER           = uint(C.MitchellFilter)
+        BESSEL_FILTER            = uint(C.BesselFilter)
+        JINC_FILTER              = uint(C.BesselFilter)
+        SINC_FAST_FILTER         = uint(C.SincFastFilter)
+        SINC_FILTER              = uint(C.SincFilter)
+        KAISER_FILTER            = uint(C.KaiserFilter)
+        WELSH_FILTER             = uint(C.WelshFilter)
+        PARZEN_FILTER            = uint(C.ParzenFilter)
+        BOHMAN_FILTER            = uint(C.BohmanFilter)
+        BARTLETT_FILTER          = uint(C.BartlettFilter)
+        LAGRANGE_FILTER          = uint(C.LagrangeFilter)
+        LANCZOS_FILTER           = uint(C.LanczosFilter)
+        //LANCZOS_SHARP_FILTER     = uint(C.LanczosSharpFilter)
+        //LANCZOS2_FILTER          = uint(C.Lanczos2Filter)
+        //LANCZOS2_SHARP_FILTER    = uint(C.Lanczos2SharpFilter)
+        //ROBIDOUX_FILTER          = uint(C.RobidouxFilter)
 )
 
 // Holds a Canvas object
@@ -389,6 +417,34 @@ func (self *Canvas) Write(filename string) error {
 // Changes the size of the canvas, returns true on success.
 func (self *Canvas) Resize(width uint, height uint) error {
 	success := C.MagickResizeImage(self.wand, C.ulong(width), C.ulong(height), C.GaussianFilter, C.double(1.0))
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not resize: %s", self.Error())
+	}
+
+	return nil
+}
+
+// Changes the size of the canvas using specified filter and blur, returns true on success.
+func (self *Canvas) ResizeWithFilter(width uint, height uint, filter uint, blur float32) error {
+        if width == 0 && height == 0 {
+            return fmt.Errorf("Please specify at least one of dimensions")
+        }
+        if width == 0 || height == 0 {
+            origHeight := uint(C.MagickGetImageHeight(self.wand))
+            origWidth  := uint(C.MagickGetImageWidth(self.wand))
+        
+            if width == 0 {
+                ratio := float32(origHeight) / float32(height)
+                width  = uint(float32(origWidth) / ratio)            
+            }
+            if height == 0 {
+                ratio  := float32(origWidth) / float32(width)
+                height = uint(float32(origHeight) / ratio)            
+            }
+        }
+
+	success := C.MagickResizeImage(self.wand, C.ulong(width), C.ulong(height), C.FilterTypes(filter), C.double(blur))
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not resize: %s", self.Error())
