@@ -158,6 +158,21 @@ func TestResize(t *testing.T) {
 	canvas.Destroy()
 }
 
+func TestResizeWithFilter(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/resizeWithFilter.jpg")
+
+	if err == nil {
+		canvas.ResizeWithFilter(170, 0, HANNING_FILTER, 1.0)
+		canvas.Write("_examples/output/resizeWithFilter.jpg")
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
 func TestBlank(t *testing.T) {
 	canvas := New()
 
