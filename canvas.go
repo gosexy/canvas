@@ -456,12 +456,14 @@ func (self *Canvas) ResizeWithFilter(width uint, height uint, filter uint, blur 
 //get image as byte array
 func (self *Canvas) GetImageBlob() ([]byte, error) {
     var imageSize C.size_t = 0
-    //imageSize = 0
-    imageBlobPointer := C.MagickGetImageBlob(self.wand, &imageSize);
+    imageBlobPointer := unsafe.Pointer(C.MagickGetImageBlob(self.wand, &imageSize))
     if imageSize == 0 {
         return nil, fmt.Errorf("Could not get image blob \n")
     }
-    return C.GoBytes(unsafe.Pointer(imageBlobPointer), C.int(imageSize)), nil
+    goBlob := C.GoBytes(imageBlobPointer, C.int(imageSize))
+    C.MagickRelinquishMemory(imageBlobPointer)
+
+    return goBlob, nil
 }
 
 // Adaptively changes the size of the canvas, returns true on success.
