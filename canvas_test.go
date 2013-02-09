@@ -164,8 +164,8 @@ func TestResizeWithFilter(t *testing.T) {
 	err := canvas.Open("_examples/input/example.jpg")
 
 	if err == nil {
-		canvas.ResizeWithFilter(170, 0, HANNING_FILTER, 1.0)
-		canvas.Write("_examples/output/example.jpg")
+		canvas.ResizeWithFilter(170, 0, HANNING_FILTER, 5.0)
+		canvas.Write("_examples/output/example-hanning-filter.jpg")
 	} else {
 		t.Errorf("Error: %s\n", err)
 	}
