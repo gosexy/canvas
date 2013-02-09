@@ -161,11 +161,11 @@ func TestResize(t *testing.T) {
 func TestResizeWithFilter(t *testing.T) {
 	canvas := New()
 
-	err := canvas.Open("_examples/input/resizeWithFilter.jpg")
+	err := canvas.Open("_examples/input/example.jpg")
 
 	if err == nil {
 		canvas.ResizeWithFilter(170, 0, HANNING_FILTER, 1.0)
-		canvas.Write("_examples/output/resizeWithFilter.jpg")
+		canvas.Write("_examples/output/example.jpg")
 	} else {
 		t.Errorf("Error: %s\n", err)
 	}
@@ -176,7 +176,7 @@ func TestResizeWithFilter(t *testing.T) {
 func TestGetImageBlob(t *testing.T) {
 	canvas := New()
 
-	err := canvas.Open("_examples/input/resizeWithFilter.jpg")
+	err := canvas.Open("_examples/input/example.jpg")
 
 	if err == nil {
 		if blob, err := canvas.GetImageBlob(); err != nil || len(blob) == 0 {
