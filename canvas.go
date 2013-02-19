@@ -142,26 +142,36 @@ func magickBoolean(value bool) C.MagickBooleanType {
 // Opens an image file, returns nil on success, error otherwise.
 func (self *Canvas) Open(filename string) error {
 	stat, err := os.Stat(filename)
+
 	if err != nil {
 		return err
 	}
+
 	if stat.IsDir() == true {
 		return fmt.Errorf(`Could not open file "%s": it's a directory!`, filename)
 	}
-	status := C.MagickReadImage(self.wand, C.CString(filename))
+
+	cfilename := C.CString(filename)
+	status := C.MagickReadImage(self.wand, cfilename)
+	C.free(unsafe.Pointer(cfilename))
+
 	if status == C.MagickFalse {
 		return fmt.Errorf(`Could not open image "%s": %s`, filename, self.Error())
 	}
+
 	self.filename = filename
+
 	return nil
 }
 
 // Reads an image or image sequence from a blob.
 func (self *Canvas) OpenBlob(blob []byte, length uint) error {
 	status := C.MagickReadImageBlob(self.wand, unsafe.Pointer(&blob[0]), C.size_t(length))
+
 	if status == C.MagickFalse {
 		return fmt.Errorf(`Could not open image from blob: %s`, self.Error())
 	}
+
 	return nil
 }
 
@@ -228,7 +238,11 @@ func (self *Canvas) Metadata() map[string]string {
 
 	data := make(map[string]string)
 
-	properties := C.MagickGetImageProperties(self.wand, C.CString("*"), &n)
+	cplist := C.CString("*")
+
+	properties := C.MagickGetImageProperties(self.wand, cplist, &n)
+
+	C.free(unsafe.Pointer(cplist))
 
 	for i = 0; i < n; i++ {
 		key = C.MagickGetPropertyName(properties, C.size_t(i))
@@ -255,46 +269,62 @@ func (self *Canvas) Error() error {
 
 // Associates a metadata key with its value.
 func (self *Canvas) SetMetadata(key string, value string) error {
-	success := C.MagickSetImageProperty(self.wand, C.CString(key), C.CString(value))
+	ckey := C.CString(key)
+	cval := C.CString(value)
+
+	success := C.MagickSetImageProperty(self.wand, ckey, cval)
+
+	C.free(unsafe.Pointer(ckey))
+	C.free(unsafe.Pointer(cval))
+
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not set metadata: %s", self.Error())
 	}
+
 	return nil
 }
 
 // Creates a horizontal mirror image by reflecting the pixels around the central y-axis.
 func (self *Canvas) Flop() error {
 	success := C.MagickFlopImage(self.wand)
+
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not flop image: %s", self.Error())
 	}
+
 	return nil
 }
 
 // Creates a vertical mirror image by reflecting the pixels around the central x-axis.
 func (self *Canvas) Flip() error {
 	success := C.MagickFlipImage(self.wand)
+
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not flop image: %s", self.Error())
 	}
+
 	return nil
 }
 
-//  adjusts the contrast of an image with a non-linear sigmoidal contrast algorithm. Increase the contrast of the image using a sigmoidal transfer function without saturating highlights or shadows. Contrast indicates how much to increase the contrast (0 is none; 3 is typical; 20 is pushing it); mid-point indicates where midtones fall in the resultant image (0 is white; 50 is middle-gray; 100 is black). Set sharpen to true to increase the image contrast otherwise the contrast is reduced.
+// Adjusts the contrast of an image with a non-linear sigmoidal contrast algorithm. Increase the contrast of the image using a sigmoidal transfer function without saturating highlights or shadows. Contrast indicates how much to increase the contrast (0 is none; 3 is typical; 20 is pushing it); mid-point indicates where midtones fall in the resultant image (0 is white; 50 is middle-gray; 100 is black). Set sharpen to true to increase the image contrast otherwise the contrast is reduced.
 func (self *Canvas) SigmoidalContrast(sharpen bool, alpha float64, beta float64) error {
 	status := C.MagickSigmoidalContrastImage(self.wand, magickBoolean(sharpen), C.double(alpha), C.double(beta))
+
 	if status == C.MagickFalse {
 		return fmt.Errorf("Could not contrast image: %s", self.Error())
 	}
+
 	return nil
 }
 
-// enhances the intensity differences between the lighter and darker elements of the image. Set sharpen to a value other than 0 to increase the image contrast otherwise the contrast is reduced.
+// Enhances the intensity differences between the lighter and darker elements of the image. Set sharpen to a value other than 0 to increase the image contrast otherwise the contrast is reduced.
 func (self *Canvas) Contrast(sharpen bool) error {
 	status := C.MagickContrastImage(self.wand, magickBoolean(sharpen))
+
 	if status == C.MagickFalse {
 		return fmt.Errorf("Could not contrast image: %s", self.Error())
 	}
+
 	return nil
 }
 
@@ -405,7 +435,9 @@ func (self *Canvas) Write(filename string) error {
 		return err
 	}
 
-	success := C.MagickWriteImage(self.wand, C.CString(filename))
+	cfilename := C.CString(filename)
+	success := C.MagickWriteImage(self.wand, cfilename)
+	C.free(unsafe.Pointer(cfilename))
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not write: %s", self.Error())
@@ -430,6 +462,7 @@ func (self *Canvas) ResizeWithFilter(width uint, height uint, filter uint, blur 
 	if width == 0 && height == 0 {
 		return fmt.Errorf("Please specify at least one of dimensions")
 	}
+
 	if width == 0 || height == 0 {
 		origHeight := uint(C.MagickGetImageHeight(self.wand))
 		origWidth := uint(C.MagickGetImageWidth(self.wand))
@@ -456,11 +489,14 @@ func (self *Canvas) ResizeWithFilter(width uint, height uint, filter uint, blur 
 //get image as byte array
 func (self *Canvas) GetImageBlob() ([]byte, error) {
 	var imageSize C.size_t = 0
+
 	imageBlobPointer := unsafe.Pointer(C.MagickGetImageBlob(self.wand, &imageSize))
 	if imageSize == 0 {
 		return nil, fmt.Errorf("Could not get image blob \n")
 	}
+
 	goBlob := C.GoBytes(imageBlobPointer, C.int(imageSize))
+
 	C.MagickRelinquishMemory(imageBlobPointer)
 
 	return goBlob, nil
@@ -508,7 +544,9 @@ func (self *Canvas) SetColor(color string) (bool) {
 func (self *Canvas) SetBackgroundColor(color string) error {
 	var status C.MagickBooleanType
 
-	status = C.PixelSetColor(self.bg, C.CString(color))
+	ccolor := C.CString(color)
+	status = C.PixelSetColor(self.bg, ccolor)
+	C.free(unsafe.Pointer(ccolor))
 
 	if status == C.MagickFalse {
 		return fmt.Errorf("Could not set pixel color: %s", self.Error())
@@ -590,7 +628,9 @@ func (self *Canvas) SetFillRule(value int) {
 
 // Sets the fill color for enclosed areas on the current drawing surface.
 func (self *Canvas) SetFillColor(color string) {
-	C.PixelSetColor(self.fill, C.CString(color))
+	ccolor := C.CString(color)
+	C.PixelSetColor(self.fill, ccolor)
+	C.free(unsafe.Pointer(ccolor))
 	C.DrawSetFillColor(self.drawing, self.fill)
 }
 
@@ -601,7 +641,9 @@ func (self *Canvas) FillColor() string {
 
 // Sets the stroke color on the current drawing surface.
 func (self *Canvas) SetStrokeColor(color string) {
-	C.PixelSetColor(self.stroke, C.CString(color))
+	ccolor := C.CString(color)
+	C.PixelSetColor(self.stroke, ccolor)
+	C.free(unsafe.Pointer(ccolor))
 	C.DrawSetStrokeColor(self.drawing, self.stroke)
 }
 
@@ -841,7 +883,10 @@ func (self *Canvas) SetHue(factor float64) error {
 
 // Sets the format of a particular image
 func (self *Canvas) SetFormat(format string) error {
-	if C.MagickSetImageFormat(self.wand, C.CString(format)) != C.MagickFalse {
+	cformat := C.CString(format)
+	defer C.free(unsafe.Pointer(cformat))
+
+	if C.MagickSetImageFormat(self.wand, cformat) != C.MagickFalse {
 		return fmt.Errorf("Coluld not set format : %s", self.Error())
 	}
 
