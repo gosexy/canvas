@@ -886,8 +886,8 @@ func (self *Canvas) SetFormat(format string) error {
 	cformat := C.CString(format)
 	defer C.free(unsafe.Pointer(cformat))
 
-	if C.MagickSetImageFormat(self.wand, cformat) != C.MagickFalse {
-		return fmt.Errorf("Coluld not set format : %s", self.Error())
+	if C.MagickSetImageFormat(self.wand, cformat) == C.MagickFalse {
+		return fmt.Errorf("Could not set format: %s", self.Error())
 	}
 
 	return nil
