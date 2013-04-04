@@ -486,6 +486,23 @@ func (self *Canvas) ResizeWithFilter(width uint, height uint, filter uint, blur 
 	return nil
 }
 
+// Sharpens an image.  We convolve the image with a Gaussian operator of the given radius and standard deviation (sigma). 
+// For reasonable results, the radius should be larger than sigma.  
+// Use a radius of 0 and selects a suitable radius for you.
+// You can pass 0 as channel number - to use default channels
+func (self *Canvas) SharpenImage(radius float32, sigma float32, channel int) error {
+	if channel == 0 {
+		channel = C.DefaultChannels
+	}
+
+	success := C.MagickSharpenImageChannel(self.wand, C.ChannelType(channel), C.double(radius), C.double(sigma))
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not resize: %s", self.Error())
+	}
+
+	return nil
+}
+
 //get image as byte array
 func (self *Canvas) GetImageBlob() ([]byte, error) {
 	var imageSize C.size_t = 0

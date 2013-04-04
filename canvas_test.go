@@ -173,6 +173,21 @@ func TestResizeWithFilter(t *testing.T) {
 	canvas.Destroy()
 }
 
+func TestSharpenImage(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.jpg")
+
+	if err == nil {
+		canvas.SharpenImage(1.0, 1.0, 0)
+		canvas.Write("_examples/output/example-sharpen-image.jpg")
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
 func TestGetImageBlob(t *testing.T) {
 	canvas := New()
 
