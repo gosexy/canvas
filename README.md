@@ -1,7 +1,7 @@
 ## gosexy/canvas
 
-`gosexy/canvas` is an image processing library for Go that uses ImageMagick's MagickWand
-as backend.
+`gosexy/canvas` is an image processing library for Go that uses ImageMagick's
+MagickWand as backend.
 
 ## Requeriments
 
@@ -23,7 +23,7 @@ $ sudo aptitude install libmagickwand-dev
 Just pull `gosexy/canvas` from github using `go get`:
 
 ```sh
-$ go get github.com/gosexy/canvas
+$ go get menteslibres.net/gosexy/canvas
 ```
 
 ## Usage
@@ -31,7 +31,7 @@ $ go get github.com/gosexy/canvas
 ```go
 package main
 
-import "github.com/gosexy/canvas"
+import "menteslibres.net/gosexy/canvas"
 
 func main() {
   img := canvas.New()
@@ -56,10 +56,4 @@ func main() {
 
 ## Documentation
 
-Read the `gosexy/canvas` documentation from a terminal
-
-```go
-$ go doc github.com/gosexy/canvas
-```
-
-Alternatively, you can [browse it](http://go.pkgdoc.org/github.com/gosexy/canvas) online.
+See the [online docs](http://godoc.org/menteslibres.net/gosexy/canvas).

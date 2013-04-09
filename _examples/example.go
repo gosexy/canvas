@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/gosexy/canvas"
 	"fmt"
+	"menteslibres.net/gosexy/canvas"
 )
 
 func main() {
