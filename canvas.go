@@ -36,6 +36,7 @@ char *MagickGetPropertyName(char **properties, size_t index) {
 import "C"
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"os"
@@ -214,7 +215,7 @@ func (self *Canvas) AutoOrientate() error {
 		self.RotateCanvas(math.Pi / 2)
 
 	default:
-		return fmt.Errorf("No orientation data found in file.")
+		return errors.New("No orientation data found in file.")
 	}
 
 	success := C.MagickSetImageOrientation(self.wand, (C.OrientationType)(TOP_LEFT_ORIENTATION))
@@ -264,7 +265,7 @@ func (self *Canvas) Error() error {
 	message := C.GoString(ptr)
 	C.MagickClearException(self.wand)
 	C.MagickRelinquishMemory(unsafe.Pointer(ptr))
-	return fmt.Errorf(message)
+	return errors.New(message)
 }
 
 // Associates a metadata key with its value.
@@ -460,7 +461,7 @@ func (self *Canvas) Resize(width uint, height uint) error {
 // Changes the size of the canvas using specified filter and blur, returns true on success.
 func (self *Canvas) ResizeWithFilter(width uint, height uint, filter uint, blur float32) error {
 	if width == 0 && height == 0 {
-		return fmt.Errorf("Please specify at least one of dimensions")
+		return errors.New("Please specify at least one of dimensions")
 	}
 
 	if width == 0 || height == 0 {
@@ -510,7 +511,7 @@ func (self *Canvas) GetImageBlob() ([]byte, error) {
 
 	p := unsafe.Pointer(C.MagickGetImageBlob(self.wand, &size))
 	if size == 0 {
-		return nil, fmt.Errorf("Could not get image blob \n")
+		return nil, errors.New("Could not get image blob.")
 	}
 
 	blob := C.GoBytes(p, C.int(size))
@@ -775,7 +776,7 @@ func (self *Canvas) Destroy() error {
 	}
 
 	if self.wand == nil {
-		return fmt.Errorf("Nothing to destroy")
+		return errors.New("Nothing to destroy")
 	} else {
 		C.DestroyMagickWand(self.wand)
 		self.wand = nil
