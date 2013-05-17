@@ -175,6 +175,52 @@ func TestResize(t *testing.T) {
 	canvas.Destroy()
 }
 
+func TestResizeWithFilter(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.jpg")
+
+	if err == nil {
+		canvas.ResizeWithFilter(170, 0, HANNING_FILTER, 5.0)
+		canvas.Write("_examples/output/example-hanning-filter.jpg")
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
+func TestSharpenImage(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.jpg")
+
+	if err == nil {
+		canvas.SharpenImage(1.0, 1.0, 0)
+		canvas.Write("_examples/output/example-sharpen-image.jpg")
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
+func TestGetImageBlob(t *testing.T) {
+	canvas := New()
+
+	err := canvas.Open("_examples/input/example.jpg")
+
+	if err == nil {
+		if blob, err := canvas.GetImageBlob(); err != nil || len(blob) == 0 {
+			t.Errorf("Error: can not get image blob")
+		}
+	} else {
+		t.Errorf("Error: %s\n", err)
+	}
+
+	canvas.Destroy()
+}
+
 func TestBlank(t *testing.T) {
 	canvas := New()
 
