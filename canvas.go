@@ -205,14 +205,14 @@ func (self *Canvas) AutoOrientate() error {
 		self.RotateCanvas(-math.Pi / 2)
 
 	case RIGHT_TOP_ORIENTATION:
-		self.RotateCanvas(-math.Pi / 2)
+		self.RotateCanvas(math.Pi / 2)
 
 	case RIGHT_BOTTOM_ORIENTATION:
 		self.Flop()
 		self.RotateCanvas(-math.Pi / 2)
 
 	case LEFT_BOTTOM_ORIENTATION:
-		self.RotateCanvas(math.Pi / 2)
+		self.RotateCanvas(-math.Pi / 2)
 
 	default:
 		return errors.New("No orientation data found in file.")
