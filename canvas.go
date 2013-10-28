@@ -378,14 +378,12 @@ func (self *Canvas) thumbnail(width uint, height uint, ratio float64) error {
 
 	if ratio < 1.0 {
 		// Origin image is smaller than the thumbnail image.
-		max := uint(math.Max(float64(width), float64(height)))
-
 		// Empty replacement buffer with transparent background.
 		replacement := New()
 
 		replacement.SetBackgroundColor("none")
 
-		replacement.Blank(max, max)
+		replacement.Blank(width, height)
 
 		// Putting original image in the center of the replacement canvas.
 		replacement.AppendCanvas(self, int(int(width-self.Width())/2), int(int(height-self.Height())/2))
