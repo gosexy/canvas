@@ -231,8 +231,8 @@ func (self *Canvas) AutoOrientate() error {
 
 // Returns all metadata keys from the currently loaded image.
 func (self *Canvas) Metadata() map[string]string {
-	var n C.ulong
-	var i C.ulong
+	var n C.size_t
+	var i C.size_t
 
 	var value *C.char
 	var key *C.char
@@ -398,7 +398,7 @@ func (self *Canvas) Thumbnail(width uint, height uint) error {
 
 // Puts a canvas on top of the current one.
 func (self *Canvas) AppendCanvas(source *Canvas, x int, y int) error {
-	success := C.MagickCompositeImage(self.wand, source.wand, C.OverCompositeOp, C.long(x), C.long(y))
+	success := C.MagickCompositeImage(self.wand, source.wand, C.OverCompositeOp, C.ssize_t(x), C.ssize_t(y))
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not append image: %s", self.Error())
@@ -449,7 +449,7 @@ func (self *Canvas) Write(filename string) error {
 
 // Changes the size of the canvas, returns true on success.
 func (self *Canvas) Resize(width uint, height uint) error {
-	success := C.MagickResizeImage(self.wand, C.ulong(width), C.ulong(height), C.GaussianFilter, C.double(1.0))
+	success := C.MagickResizeImage(self.wand, C.size_t(width), C.size_t(height), C.GaussianFilter, C.double(1.0))
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not resize: %s", self.Error())
@@ -478,7 +478,7 @@ func (self *Canvas) ResizeWithFilter(width uint, height uint, filter uint, blur 
 		}
 	}
 
-	success := C.MagickResizeImage(self.wand, C.ulong(width), C.ulong(height), C.FilterTypes(filter), C.double(blur))
+	success := C.MagickResizeImage(self.wand, C.size_t(width), C.size_t(height), C.FilterTypes(filter), C.double(blur))
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not resize: %s", self.Error())
@@ -523,7 +523,7 @@ func (self *Canvas) GetImageBlob() ([]byte, error) {
 
 // Adaptively changes the size of the canvas, returns true on success.
 func (self *Canvas) AdaptiveResize(width uint, height uint) error {
-	success := C.MagickAdaptiveResizeImage(self.wand, C.ulong(width), C.ulong(height))
+	success := C.MagickAdaptiveResizeImage(self.wand, C.size_t(width), C.size_t(height))
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not resize: %s", self.Error())
@@ -534,7 +534,7 @@ func (self *Canvas) AdaptiveResize(width uint, height uint) error {
 
 // Changes the compression quality of the canvas. Ranges from 1 (lowest) to 100 (highest).
 func (self *Canvas) SetQuality(quality uint) error {
-	success := C.MagickSetImageCompressionQuality(self.wand, C.ulong(quality))
+	success := C.MagickSetImageCompressionQuality(self.wand, C.size_t(quality))
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not set compression quality: %s", self.Error())
@@ -791,7 +791,7 @@ func Finalize() {
 
 // Creates an empty canvas of the given dimensions.
 func (self *Canvas) Blank(width uint, height uint) error {
-	success := C.MagickNewImage(self.wand, C.ulong(width), C.ulong(height), self.bg)
+	success := C.MagickNewImage(self.wand, C.size_t(width), C.size_t(height), self.bg)
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not create image: %s", self.Error())
@@ -835,7 +835,7 @@ func (self *Canvas) AddNoise() error {
 
 // Removes a region of a canvas and collapses the canvas to occupy the removed portion.
 func (self *Canvas) Chop(x int, y int, width uint, height uint) error {
-	success := C.MagickChopImage(self.wand, C.ulong(width), C.ulong(height), C.long(x), C.long(y))
+	success := C.MagickChopImage(self.wand, C.size_t(width), C.size_t(height), C.ssize_t(x), C.ssize_t(y))
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not chop: %s", self.Error())
@@ -846,7 +846,7 @@ func (self *Canvas) Chop(x int, y int, width uint, height uint) error {
 
 // Extracts a region from the canvas.
 func (self *Canvas) Crop(x int, y int, width uint, height uint) error {
-	success := C.MagickCropImage(self.wand, C.ulong(width), C.ulong(height), C.long(x), C.long(y))
+	success := C.MagickCropImage(self.wand, C.size_t(width), C.size_t(height), C.ssize_t(x), C.ssize_t(y))
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not crop: %s", self.Error())
