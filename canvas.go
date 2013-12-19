@@ -912,6 +912,12 @@ func (self *Canvas) SetFormat(format string) error {
 	return nil
 }
 
+func (self *Canvas) GetImageFormat() string {
+	ptr := C.MagickGetImageFormat(self.wand)
+	defer C.free(unsafe.Pointer(ptr))
+	return C.GoString(ptr)
+}
+
 // Implements direct to memory image formats. It returns the image as a blob
 func (self *Canvas) Blob(length *uint) []byte {
 	ptr := unsafe.Pointer(C.MagickGetImageBlob(self.wand, (*C.size_t)(unsafe.Pointer(length))))
