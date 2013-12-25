@@ -920,6 +920,18 @@ func (self *Canvas) Blob(length *uint) []byte {
 	return data
 }
 
+func (self *Canvas) Strip() error {
+	var status C.MagickBooleanType
+
+	status = C.MagickStripImage(self.wand)
+
+	if status == C.MagickFalse {
+		return fmt.Errorf("Could not strip: %s", self.Error())
+	}
+
+	return nil
+}
+
 // Returns a new canvas object.
 func New() *Canvas {
 	self := &Canvas{}
