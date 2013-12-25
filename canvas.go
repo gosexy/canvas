@@ -100,6 +100,20 @@ var (
 	ROBIDOUX_FILTER       = uint(C.RobidouxFilter)
 )
 
+const (
+	UndefinedType            = uint(C.UndefinedType)
+	BilevelType              = uint(C.BilevelType)
+	GrayscaleType            = uint(C.GrayscaleType)
+	GrayscaleMatterType      = uint(C.GrayscaleMatteType)
+	PaletteType              = uint(C.PaletteType)
+	PaletteMatteType         = uint(C.PaletteMatteType)
+	TrueColorType            = uint(C.TrueColorType)
+	TrueColorMatteType       = uint(C.TrueColorMatteType)
+	ColorSeparationType      = uint(C.ColorSeparationType)
+	ColorSeparationMatteType = uint(C.ColorSeparationMatteType)
+	OptimizeType             = uint(C.OptimizeType)
+)
+
 // Holds a Canvas object
 type Canvas struct {
 	wand *C.MagickWand
