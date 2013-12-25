@@ -920,6 +920,22 @@ func (self *Canvas) Blob(length *uint) []byte {
 	return data
 }
 
+func (self *Canvas) SetType(imageType uint) error {
+	var status C.MagickBooleanType
+
+	status = C.MagickSetImageType(self.wand, C.ImageType(imageType))
+
+	if status == C.MagickFalse {
+		return fmt.Errorf("Could not set type: %s", self.Error())
+	}
+
+	return nil
+}
+
+func (self *Canvas) Type() uint {
+	return uint(C.MagickGetImageType(self.wand))
+}
+
 // Returns a new canvas object.
 func New() *Canvas {
 	self := &Canvas{}
