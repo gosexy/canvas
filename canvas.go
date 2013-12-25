@@ -112,6 +112,20 @@ var (
 	OPTIMIZE_TYPE               = uint(C.OptimizeType)
 )
 
+const (
+	UndefinedType            = uint(C.UndefinedType)
+	BilevelType              = uint(C.BilevelType)
+	GrayscaleType            = uint(C.GrayscaleType)
+	GrayscaleMatterType      = uint(C.GrayscaleMatteType)
+	PaletteType              = uint(C.PaletteType)
+	PaletteMatteType         = uint(C.PaletteMatteType)
+	TrueColorType            = uint(C.TrueColorType)
+	TrueColorMatteType       = uint(C.TrueColorMatteType)
+	ColorSeparationType      = uint(C.ColorSeparationType)
+	ColorSeparationMatteType = uint(C.ColorSeparationMatteType)
+	OptimizeType             = uint(C.OptimizeType)
+)
+
 // Holds a Canvas object
 type Canvas struct {
 	wand *C.MagickWand
@@ -948,6 +962,22 @@ func (self *Canvas) Strip() error {
 	}
 
 	return nil
+}
+
+func (self *Canvas) SetType(imageType uint) error {
+	var status C.MagickBooleanType
+
+	status = C.MagickSetImageType(self.wand, C.ImageType(imageType))
+
+	if status == C.MagickFalse {
+		return fmt.Errorf("Could not set type: %s", self.Error())
+	}
+
+	return nil
+}
+
+func (self *Canvas) Type() uint {
+	return uint(C.MagickGetImageType(self.wand))
 }
 
 // Returns a new canvas object.
