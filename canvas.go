@@ -98,6 +98,18 @@ var (
 	LANCZOS2_FILTER       = uint(C.Lanczos2Filter)
 	LANCZOS2_SHARP_FILTER = uint(C.Lanczos2SharpFilter)
 	ROBIDOUX_FILTER       = uint(C.RobidouxFilter)
+
+	UNDEFINED_TYPE              = uint(C.UndefinedType)
+	BILEVEL_TYPE                = uint(C.BilevelType)
+	GRAYSCALE_TYPE              = uint(C.GrayscaleType)
+	GRAYSCALE_MATTER_TYPE       = uint(C.GrayscaleMatteType)
+	PALETTE_TYPE                = uint(C.PaletteType)
+	PALETTE_MATTE_TYPE          = uint(C.PaletteMatteType)
+	TRUE_COLOR_TYPE             = uint(C.TrueColorType)
+	TRUE_COLOR_MATTE_TYPE       = uint(C.TrueColorMatteType)
+	COLOR_SEPARATION_TYPE       = uint(C.ColorSeparationType)
+	COLOR_SEPARATION_MATTE_TYPE = uint(C.ColorSeparationMatteType)
+	OPTIMIZE_TYPE               = uint(C.OptimizeType)
 )
 
 // Holds a Canvas object
@@ -912,7 +924,7 @@ func (self *Canvas) SetFormat(format string) error {
 	return nil
 }
 
-func (self *Canvas) GetImageFormat() string {
+func (self *Canvas) GetFormat() string {
 	ptr := C.MagickGetImageFormat(self.wand)
 	defer C.free(unsafe.Pointer(ptr))
 	return C.GoString(ptr)
