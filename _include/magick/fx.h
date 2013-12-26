@@ -1,5 +1,5 @@
 /*
-  Copyright 1999-2010 ImageMagick Studio LLC, a non-profit organization
+  Copyright 1999-2012 ImageMagick Studio LLC, a non-profit organization
   dedicated to making software imaging solutions freely available.
   
   You may not use this file except in compliance with the License.
@@ -43,30 +43,29 @@ extern MagickExport Image
   *BlueShiftImage(const Image *,const double,ExceptionInfo *),
   *CharcoalImage(const Image *,const double,const double,ExceptionInfo *),
   *ColorizeImage(const Image *,const char *,const PixelPacket,ExceptionInfo *),
+  *ColorMatrixImage(const Image *,const KernelInfo *kernel,ExceptionInfo *),
   *FxImage(const Image *,const char *,ExceptionInfo *),
   *FxImageChannel(const Image *,const ChannelType,const char *,ExceptionInfo *),
   *ImplodeImage(const Image *,const double,ExceptionInfo *),
-  *MorphImages(const Image *,const unsigned long,ExceptionInfo *),
+  *MorphImages(const Image *,const size_t,ExceptionInfo *),
   *PolaroidImage(const Image *,const DrawInfo *,const double,ExceptionInfo *),
-  *RecolorImage(const Image *,const unsigned long,const double *,
-    ExceptionInfo *),
   *SepiaToneImage(const Image *,const double,ExceptionInfo *),
-  *ShadowImage(const Image *,const double,const double,const long,const long,
-    ExceptionInfo *),
+  *ShadowImage(const Image *,const double,const double,const ssize_t,
+    const ssize_t,ExceptionInfo *),
   *SketchImage(const Image *,const double,const double,const double,
     ExceptionInfo *),
   *SteganoImage(const Image *,const Image *,ExceptionInfo *),
   *StereoImage(const Image *,const Image *,ExceptionInfo *),
-  *StereoAnaglyphImage(const Image *,const Image *,const long,const long,
+  *StereoAnaglyphImage(const Image *,const Image *,const ssize_t,const ssize_t,
      ExceptionInfo *),
   *SwirlImage(const Image *,double,ExceptionInfo *),
   *TintImage(const Image *,const char *,const PixelPacket,ExceptionInfo *),
-  *VignetteImage(const Image *,const double,const double,const long,
-    const long,ExceptionInfo *),
+  *VignetteImage(const Image *,const double,const double,const ssize_t,
+    const ssize_t,ExceptionInfo *),
   *WaveImage(const Image *,const double,const double,ExceptionInfo *);
 
 extern MagickExport MagickBooleanType
-  PlasmaImage(Image *,const SegmentInfo *,unsigned long,unsigned long),
+  PlasmaImage(Image *,const SegmentInfo *,size_t,size_t),
   SolarizeImage(Image *,const double);
 
 #if defined(__cplusplus) || defined(c_plusplus)

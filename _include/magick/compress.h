@@ -1,5 +1,5 @@
 /*
-  Copyright 1999-2010 ImageMagick Studio LLC, a non-profit organization
+  Copyright 1999-2012 ImageMagick Studio LLC, a non-profit organization
   dedicated to making software imaging solutions freely available.
   
   You may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ typedef enum
   FaxCompression,
   Group4Compression,
   JPEGCompression,
-  JPEG2000Compression,
+  JPEG2000Compression,      /* ISO/IEC std 15444-1 */
   LosslessJPEGCompression,
   LZWCompression,
   RLECompression,
@@ -42,7 +42,10 @@ typedef enum
   PizCompression,
   Pxr24Compression,
   B44Compression,
-  B44ACompression
+  B44ACompression,
+  LZMACompression,            /* Lempel-Ziv-Markov chain algorithm */
+  JBIG1Compression,           /* ISO/IEC std 11544 / ITU-T rec T.82 */
+  JBIG2Compression            /* ISO/IEC std 14492 / ITU-T rec T.88 */
 } CompressionType;
 
 typedef struct _Ascii85Info

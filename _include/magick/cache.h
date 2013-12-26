@@ -1,5 +1,5 @@
 /*
-  Copyright 1999-2010 ImageMagick Studio LLC, a non-profit organization
+  Copyright 1999-2012 ImageMagick Studio LLC, a non-profit organization
   dedicated to making software imaging solutions freely available.
   
   You may not use this file except in compliance with the License.
@@ -24,12 +24,24 @@ extern "C" {
 
 #include "magick/blob.h"
 
+typedef enum
+{
+  UndefinedCache,
+  MemoryCache,
+  MapCache,
+  DiskCache,
+  PingCache
+} CacheType;
+
+extern MagickExport CacheType
+  GetImagePixelCacheType(const Image *);
+
 extern MagickExport const IndexPacket
   *GetVirtualIndexQueue(const Image *);
 
 extern MagickExport const PixelPacket
-  *GetVirtualPixels(const Image *,const long,const long,const unsigned long,
-    const unsigned long,ExceptionInfo *),
+  *GetVirtualPixels(const Image *,const ssize_t,const ssize_t,const size_t,
+    const size_t,ExceptionInfo *),
   *GetVirtualPixelQueue(const Image *);
 
 extern MagickExport const void
@@ -40,13 +52,13 @@ extern MagickExport IndexPacket
 
 extern MagickExport MagickBooleanType
   CacheComponentGenesis(void),
-  GetOneVirtualMagickPixel(const Image *,const long,const long,
+  GetOneVirtualMagickPixel(const Image *,const ssize_t,const ssize_t,
     MagickPixelPacket *,ExceptionInfo *),
-  GetOneVirtualPixel(const Image *,const long,const long,PixelPacket *,
+  GetOneVirtualPixel(const Image *,const ssize_t,const ssize_t,PixelPacket *,
     ExceptionInfo *),
-  GetOneVirtualMethodPixel(const Image *,const VirtualPixelMethod,const long,
-    const long,PixelPacket *,ExceptionInfo *),
-  GetOneAuthenticPixel(Image *,const long,const long,PixelPacket *,
+  GetOneVirtualMethodPixel(const Image *,const VirtualPixelMethod,const ssize_t,
+    const ssize_t,PixelPacket *,ExceptionInfo *),
+  GetOneAuthenticPixel(Image *,const ssize_t,const ssize_t,PixelPacket *,
     ExceptionInfo *),
   PersistPixelCache(Image *,const char *,const MagickBooleanType,
     MagickOffsetType *,ExceptionInfo *),
@@ -56,11 +68,11 @@ extern MagickExport MagickSizeType
   GetImageExtent(const Image *);
 
 extern MagickExport PixelPacket
-  *GetAuthenticPixels(Image *,const long,const long,const unsigned long,
-    const unsigned long,ExceptionInfo *),
+  *GetAuthenticPixels(Image *,const ssize_t,const ssize_t,const size_t,
+    const size_t,ExceptionInfo *),
   *GetAuthenticPixelQueue(const Image *),
-  *QueueAuthenticPixels(Image *,const long,const long,const unsigned long,
-    const unsigned long,ExceptionInfo *);
+  *QueueAuthenticPixels(Image *,const ssize_t,const ssize_t,const size_t,
+    const size_t,ExceptionInfo *);
 
 extern MagickExport VirtualPixelMethod
   GetPixelCacheVirtualMethod(const Image *),
