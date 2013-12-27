@@ -13,5 +13,5 @@ install:
   - sudo apt-get install libmagickwand-dev -y
 
 script:
-  - go get menteslibres.net/gosexy/canvas
+  - go build
   - go test
