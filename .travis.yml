@@ -1,0 +1,16 @@
+language: go
+
+go:
+  - 1.0
+  - 1.1
+  - 1.2
+  - tip
+
+env:
+  - GOARCH=amd64
+
+install:
+  - sudo apt-get install libmagickwand-dev -y
+
+script:
+  - go get menteslibres.net/gosexy/canvas && cd $GOPATH/src/menteslibres.net/gosexy/canvas && go test
