@@ -1,5 +1,5 @@
 /*
-  Copyright 1999-2010 ImageMagick Studio LLC, a non-profit organization
+  Copyright 1999-2012 ImageMagick Studio LLC, a non-profit organization
   dedicated to making software imaging solutions freely available.
   
   You may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ typedef struct _ChannelFeatures
 } ChannelFeatures;
 
 extern MagickExport ChannelFeatures
-  *GetImageChannelFeatures(const Image *,const unsigned long,ExceptionInfo *);
+  *GetImageChannelFeatures(const Image *,const size_t,ExceptionInfo *);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }

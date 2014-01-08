@@ -1,5 +1,5 @@
 /*
-  Copyright 1999-2010 ImageMagick Studio LLC, a non-profit organization
+  Copyright 1999-2012 ImageMagick Studio LLC, a non-profit organization
   dedicated to making software imaging solutions freely available.
   
   You may not use this file except in compliance with the License.
@@ -39,12 +39,12 @@ typedef struct _ConfigureInfo
     *previous,
     *next;  /* deprecated, use GetConfigureInfoList() */
 
-  unsigned long
+  size_t
     signature;
 } ConfigureInfo;
 
 extern MagickExport char
-  **GetConfigureList(const char *,unsigned long *,ExceptionInfo *),
+  **GetConfigureList(const char *,size_t *,ExceptionInfo *),
   *GetConfigureOption(const char *);
 
 extern MagickExport const char
@@ -52,7 +52,7 @@ extern MagickExport const char
 
 extern MagickExport const ConfigureInfo
   *GetConfigureInfo(const char *,ExceptionInfo *),
-  **GetConfigureInfoList(const char *,unsigned long *,ExceptionInfo *);
+  **GetConfigureInfoList(const char *,size_t *,ExceptionInfo *);
 
 extern MagickExport LinkedListInfo
   *DestroyConfigureOptions(LinkedListInfo *),

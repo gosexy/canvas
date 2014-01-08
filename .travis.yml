@@ -1,0 +1,17 @@
+language: go
+
+go:
+  - 1.0
+  - 1.1
+  - 1.2
+  - tip
+
+env:
+  - GOARCH=amd64
+
+install:
+  - sudo apt-get install libmagickwand-dev -y
+
+script:
+  - go build
+  - go test
