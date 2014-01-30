@@ -126,6 +126,15 @@ const (
 	OptimizeType             = uint(C.OptimizeType)
 )
 
+type Alignment uint
+
+const (
+ 	UndefinedAlign Alignment	= Alignment(C.UndefinedAlign)
+	LeftAlign					= Alignment(C.LeftAlign)
+	CenterAlign					= Alignment(C.CenterAlign)
+	RightAlign					= Alignment(C.RightAlign)
+)
+
 // Holds a Canvas object
 type Canvas struct {
 	wand *C.MagickWand
@@ -439,7 +448,7 @@ func (self *Canvas) thumbnail(width uint, height uint, ratio float64) error {
 
 // Puts a canvas on top of the current one.
 func (self *Canvas) AppendCanvas(source *Canvas, x int, y int) error {
-	success := C.MagickCompositeImage(self.wand, source.wand, C.OverCompositeOp, C.ssize_t(x), C.ssize_t(y))
+	success := C.MagickCompositeImage(self.wand, source.wand, C.SrcOverCompositeOp, C.ssize_t(x), C.ssize_t(y))
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not append image: %s", self.Error())
@@ -589,7 +598,7 @@ func (self *Canvas) Quality() uint {
 	return uint(C.MagickGetImageCompressionQuality(self.wand))
 }
 
-/*
+
 // Sets canvas's foreground color.
 func (self *Canvas) SetColor(color string) (bool) {
   status := C.PixelSetColor(self.fg, C.CString(color))
@@ -598,7 +607,7 @@ func (self *Canvas) SetColor(color string) (bool) {
   }
   return true
 }
-*/
+
 
 // Sets canvas' background color.
 func (self *Canvas) SetBackgroundColor(color string) error {
@@ -737,6 +746,48 @@ func (self *Canvas) Line(x float64, y float64) {
 	C.DrawLine(self.drawing, C.double(0), C.double(0), C.double(x), C.double(y))
 }
 
+// Set font main family and size.
+// If font is 0-length, the current font family is not changed
+// If size is <= 0, the current font size is not changed
+func (self *Canvas) SetFont(font string, size float64) {
+	if len(font) > 0 {
+		c_font := C.CString(font)
+		C.DrawSetFont(self.drawing, c_font)
+		C.free(unsafe.Pointer(c_font))
+	}
+	if size > 0 {
+		C.DrawSetFontSize(self.drawing,C.double(size))
+	}
+}
+
+// Returns the current font family and size
+func (self *Canvas) Font() (string, float64) {
+	c_font := C.DrawGetFont(self.drawing)
+	font := C.GoString(c_font)
+	C.MagickRelinquishMemory(unsafe.Pointer(c_font))
+
+	size := float64(C.DrawGetFontSize(self.drawing))
+
+	return font, size
+}
+
+// Sets text alignment. Available values are:
+// UndefinedAlign (?), LeftAlign, CenterAlign, RightAlign
+func (self *Canvas) SetTextAlignment(a Alignment) {
+	C.DrawSetTextAlignment(self.drawing, C.AlignType(a))	
+}
+
+// Returns the current text aligment
+func (self *Canvas) TextAlignment() Alignment {
+	return Alignment(C.DrawGetTextAlignment(self.drawing))
+}
+
+// Draws a string starting at the specified coordinates.
+func (self *Canvas) Text(text string, x, y float64) {
+	c_text := C.CString(text)
+	defer C.free(unsafe.Pointer(c_text))
+	C.DrawAnnotation(self.drawing, C.double(x), C.double(y), (*C.uchar)(unsafe.Pointer(c_text)))
+}
 /*
 func (self *Canvas) Skew(x float64, y float64) {
   C.DrawSkewX(self.drawing, C.double(x))
