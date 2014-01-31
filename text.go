@@ -5,7 +5,6 @@ getters and setters for
 - Weight (uint)
 - Style (redefine C type)
 - Resolution (two doubles)
-- Antialias (bool)
 - Decoration (redefine C type)
 - Encoding (string)
 */
@@ -44,7 +43,7 @@ type TextProperties struct {
 	// Style		C.StyleType
 	// Resolution  [2]C.double
 	Alignment	Alignment
-	// Antialias	bool
+	Antialias	bool
 	// Decoration	C.DecorationType
 	// Encoding	string
 	UnderColor	*C.PixelWand
@@ -62,6 +61,12 @@ func (self *Canvas) NewTextProperties(read_default bool) *TextProperties {
 		defer C.free(unsafe.Pointer(cfamily))
 		csize := C.DrawGetFontSize(self.drawing)
 		calignment := C.DrawGetTextAlignment(self.drawing)
+		cantialias := C.DrawGetTextAntialias(self.drawing)
+		antialias := false
+		if cantialias == C.MagickTrue {
+			antialias = true
+		}
+
 		underColor :=C.NewPixelWand()
 		C.DrawGetTextUnderColor(self.drawing, underColor)
 		return &TextProperties{
@@ -69,6 +74,7 @@ func (self *Canvas) NewTextProperties(read_default bool) *TextProperties {
 			Family: C.GoString(cfamily),
 			Size: float64(csize),
 			Alignment: Alignment(calignment),
+			Antialias: antialias,
 			UnderColor: underColor,
 		}
 	}
@@ -84,6 +90,7 @@ func (self *Canvas) SetTextProperties(def *TextProperties) {
 		self.SetFont(def.Font, def.Size)
 		self.SetFontFamily(def.Family)
 		self.SetTextAlignment(def.Alignment)
+		self.SetTextAntialias(def.Antialias)
 	}
 }
 
@@ -161,6 +168,17 @@ func (self *Canvas) SetTextAlignment(a Alignment) {
 // Returns the canvas' current text aligment
 func (self *Canvas) TextAlignment() Alignment {
 	return self.text.Alignment
+}
+
+// Sets canvas' default text antialiasing option.
+func (self *Canvas) SetTextAntialias(b bool) {
+	self.text.Antialias = b
+	C.DrawSetTextAntialias(self.drawing, magickBoolean(b))
+}
+
+// Returns the canvas' current text aligment
+func (self *Canvas) TextAntialias() bool {
+	return self.text.Antialias
 }
 
 // Draws a string at the specified coordinates and using the current canvas
