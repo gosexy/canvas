@@ -1,4 +1,14 @@
-/* text.go contains functions for text annotation */
+/* text.go contains functions for text annotation
+TODO:
+getters and setters for
+- Stretch (redefine C type)
+- Weight (uint)
+- Style (redefine C type)
+- Resolution (two doubles)
+- Antialias (bool)
+- Decoration (redefine C type)
+- Encoding (string)
+*/
 
 package canvas
 
@@ -155,7 +165,7 @@ func (self *Canvas) TextAlignment() Alignment {
 
 // Draws a string at the specified coordinates and using the current canvas
 // Alignment.
-func (self *Canvas) Text(text string, x, y float64) {
+func (self *Canvas) Annotate(text string, x, y float64) {
 	c_text := C.CString(text)
 	defer C.free(unsafe.Pointer(c_text))
 	C.DrawAnnotation(self.drawing, C.double(x), C.double(y), (*C.uchar)(unsafe.Pointer(c_text)))
@@ -163,13 +173,13 @@ func (self *Canvas) Text(text string, x, y float64) {
 
 // Draws a string at the specified coordinates and using the specified Text Properties
 // Does not modify the canvas' default TextProperties
-func (self *Canvas) TextWithProperties(text string, x, y float64, prop *TextProperties) {
+func (self *Canvas) AnnotateWithProperties(text string, x, y float64, prop *TextProperties) {
 	if prop != nil {
 		tmp := self.TextProperties()
 		self.SetTextProperties(prop)
-		self.Text(text, x, y)
+		self.Annotate(text, x, y)
 		self.SetTextProperties(tmp)
 	} else {
-		self.Text(text, x, y)
+		self.Annotate(text, x, y)
 	}
 }
