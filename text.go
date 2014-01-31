@@ -2,11 +2,13 @@
 TODO:
 getters and setters for
 - Stretch (redefine C type)
-- Weight (uint)
 - Style (redefine C type)
 - Resolution (two doubles)
 - Decoration (redefine C type)
 - Encoding (string)
+-  DrawSetTextInterlineSpacing(DrawingWand *,const double),
+-  DrawSetTextInterwordSpacing(DrawingWand *,const double),
+-  DrawSetGravity(DrawingWand *wand,const GravityType gravity)
 */
 
 package canvas
@@ -39,13 +41,16 @@ type TextProperties struct {
 	Family		string
 	Size		float64
 	// Stretch		C.StretchType
-	// Weight		uint
+	Weight		uint
 	// Style		C.StyleType
 	// Resolution  [2]C.double
 	Alignment	Alignment
 	Antialias	bool
 	// Decoration	C.DecorationType
 	// Encoding	string
+	Kerning		float64
+	// Interline	float64
+	// Interword	float64
 	UnderColor	*C.PixelWand
 }
 
@@ -60,8 +65,10 @@ func (self *Canvas) NewTextProperties(read_default bool) *TextProperties {
 		cfamily := C.DrawGetFontFamily(self.drawing)
 		defer C.free(unsafe.Pointer(cfamily))
 		csize := C.DrawGetFontSize(self.drawing)
+		cweight := C.DrawGetFontWeight(self.drawing)
 		calignment := C.DrawGetTextAlignment(self.drawing)
 		cantialias := C.DrawGetTextAntialias(self.drawing)
+		ckerning := C.DrawGetTextKerning(self.drawing)
 		antialias := false
 		if cantialias == C.MagickTrue {
 			antialias = true
@@ -73,8 +80,10 @@ func (self *Canvas) NewTextProperties(read_default bool) *TextProperties {
 			Font: C.GoString(cfont),
 			Family: C.GoString(cfamily),
 			Size: float64(csize),
+			Weight: uint(cweight),
 			Alignment: Alignment(calignment),
 			Antialias: antialias,
+			Kerning: float64(ckerning),
 			UnderColor: underColor,
 		}
 	}
@@ -87,10 +96,12 @@ func (self *Canvas) NewTextProperties(read_default bool) *TextProperties {
 func (self *Canvas) SetTextProperties(def *TextProperties) {
 	if def != nil {
 		self.text = def
-		self.SetFont(def.Font, def.Size)
 		self.SetFontFamily(def.Family)
+		self.SetFont(def.Font, def.Size)
+		self.SetFontWeight(def.Weight)
 		self.SetTextAlignment(def.Alignment)
 		self.SetTextAntialias(def.Antialias)
+		self.SetTextKerning(def.Kerning)
 	}
 }
 
@@ -140,6 +151,17 @@ func (self *Canvas) FontSize() float64 {
 	return self.text.Size
 }
 
+// Sets canvas' default font weight
+func (self *Canvas) SetFontWeight(weight uint) {
+	self.text.Weight = weight
+	C.DrawSetFontWeight(self.drawing, C.size_t(weight))		
+}
+
+// Returns canvas' current font weight
+func (self *Canvas) FontWeight() uint {
+	return self.text.Weight
+}
+
 
 // Sets canvas' font name and size.
 // If font is 0-length, the current font family is not changed
@@ -179,6 +201,17 @@ func (self *Canvas) SetTextAntialias(b bool) {
 // Returns the canvas' current text aligment
 func (self *Canvas) TextAntialias() bool {
 	return self.text.Antialias
+}
+
+// Sets canvas' default text antialiasing option.
+func (self *Canvas) SetTextKerning(k float64) {
+	self.text.Kerning = k
+	C.DrawSetTextKerning(self.drawing, C.double(k))
+}
+
+// Returns the canvas' current text aligment
+func (self *Canvas) TextKerning() float64 {
+	return self.text.Kerning
 }
 
 // Draws a string at the specified coordinates and using the current canvas
