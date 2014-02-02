@@ -539,6 +539,7 @@ func (self *Canvas) Blob() ([]byte, error) {
 	var size C.size_t = 0
 
 	p := unsafe.Pointer(C.MagickGetImageBlob(self.wand, &size))
+
 	if size == 0 {
 		return nil, errors.New("Could not get image blob.")
 	}
@@ -949,14 +950,6 @@ func (self *Canvas) Format() string {
 	ptr := C.MagickGetImageFormat(self.wand)
 	defer C.free(unsafe.Pointer(ptr))
 	return C.GoString(ptr)
-}
-
-// Implements direct to memory image formats. It returns the image as a blob
-func (self *Canvas) Blob(length *uint) []byte {
-	ptr := unsafe.Pointer(C.MagickGetImageBlob(self.wand, (*C.size_t)(unsafe.Pointer(length))))
-	data := C.GoBytes(ptr, C.int(*length))
-	C.MagickRelinquishMemory(ptr)
-	return data
 }
 
 func (self *Canvas) Strip() error {
