@@ -26,7 +26,7 @@ $ sudo aptitude install libmagickwand-dev
 Just pull `gosexy/canvas` from github using `go get`:
 
 ```sh
-$ go get menteslibres.net/gosexy/canvas
+$ go get github.com/gosexy/canvas
 ```
 
 ## Usage
@@ -34,7 +34,7 @@ $ go get menteslibres.net/gosexy/canvas
 ```go
 package main
 
-import "menteslibres.net/gosexy/canvas"
+import "github.com/gosexy/canvas"
 
 func main() {
   img := canvas.New()
@@ -59,4 +59,4 @@ func main() {
 
 ## Documentation
 
-See the [online docs](http://godoc.org/menteslibres.net/gosexy/canvas).
+See the [online docs](http://godoc.org/github.com/gosexy/canvas).
