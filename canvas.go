@@ -531,8 +531,11 @@ func (self *Canvas) SharpenImage(radius float32, sigma float32, channel int) err
 	return nil
 }
 
-// Get image data as a byte array.
 func (self *Canvas) GetImageBlob() ([]byte, error) {
+	return self.Blob()
+}
+
+func (self *Canvas) Blob() ([]byte, error) {
 	var size C.size_t = 0
 
 	p := unsafe.Pointer(C.MagickGetImageBlob(self.wand, &size))
@@ -939,6 +942,10 @@ func (self *Canvas) SetFormat(format string) error {
 }
 
 func (self *Canvas) GetFormat() string {
+	return self.Format()
+}
+
+func (self *Canvas) Format() string {
 	ptr := C.MagickGetImageFormat(self.wand)
 	defer C.free(unsafe.Pointer(ptr))
 	return C.GoString(ptr)
