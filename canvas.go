@@ -126,6 +126,17 @@ const (
 	OptimizeType             = uint(C.OptimizeType)
 )
 
+const (
+	UndefinedInterlace = uint(C.UndefinedInterlace)
+	NoInterlace        = uint(C.NoInterlace)
+	LineInterlace      = uint(C.LineInterlace)
+	PlaneInterlace     = uint(C.PlaneInterlace)
+	PartitionInterlace = uint(C.PartitionInterlace)
+	GIFInterlace       = uint(C.GIFInterlace)
+	JPEGInterlace      = uint(C.JPEGInterlace)
+	PNGInterlace       = uint(C.PNGInterlace)
+)
+
 // Holds a Canvas object
 type Canvas struct {
 	wand *C.MagickWand
@@ -942,6 +953,18 @@ func (self *Canvas) SetHue(factor float64) error {
 	return nil
 }
 
+func (self *Canvas) InterlaceScheme() uint {
+	return uint(C.MagickGetImageInterlaceScheme(self.wand))
+}
+
+func (self *Canvas) SetInterlaceScheme(scheme uint) error {
+	if C.MagickSetImageInterlaceScheme(self.wand, C.InterlaceType(scheme)) == C.MagickFalse {
+		return fmt.Errorf("Could not set interlace scheme: %s", self.Error())
+	}
+
+	return nil
+}
+
 // Sets the format of a particular image
 func (self *Canvas) SetFormat(format string) error {
 	cformat := C.CString(format)
@@ -961,6 +984,7 @@ func (self *Canvas) GetFormat() string {
 func (self *Canvas) Format() string {
 	ptr := C.MagickGetImageFormat(self.wand)
 	defer C.free(unsafe.Pointer(ptr))
+
 	return C.GoString(ptr)
 }
 
