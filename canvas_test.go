@@ -302,6 +302,14 @@ func TestSettersAndGetters(t *testing.T) {
 		t.Errorf("Got %d, expecting %d", gotQuality, quality)
 	}
 
+	const interlaceScheme = NoInterlace
+
+	canvas.SetInterlaceScheme(interlaceScheme)
+
+	if gotInterlaceScheme := canvas.InterlaceScheme(); interlaceScheme != interlaceScheme {
+		t.Errorf("Got %d, expecting %d", gotInterlaceScheme, interlaceScheme)
+	}
+
 	canvas.Destroy()
 }
 
