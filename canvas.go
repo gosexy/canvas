@@ -885,9 +885,21 @@ func (self *Canvas) Crop(x int, y int, width uint, height uint) error {
 	return nil
 }
 
+func (self *Canvas) SetContrast(factor float64) error {
+	factor = math.Max(-100, factor)
+	factor = math.Min(100, factor)
+
+	success := C.MagickBrightnessContrastImage(self.wand, 0, C.double(factor))
+
+	if success == C.MagickFalse {
+		return fmt.Errorf("Could not set contrast: %s", self.Error())
+	}
+
+	return nil
+}
+
 // Adjusts the canvas's brightness given a factor (-1.0 thru 1.0)
 func (self *Canvas) SetBrightness(factor float64) error {
-
 	factor = math.Max(-1, factor)
 	factor = math.Min(1, factor)
 
