@@ -1021,7 +1021,7 @@ func (self *Canvas) Type() uint {
 func (self *Canvas) SetSepiaTone(threshold float64) error {
 	threshold = math.Max(0.0, threshold)
 	threshold = math.Min(100.0, threshold)
-	threshold = (float64(self.quantumRange) * threshold) / 100.0
+	threshold = (float64(self.QuantumRange()) * threshold) / 100.0
 
 	if C.MagickSepiaToneImage(self.wand, C.double(threshold)) == C.MagickFalse {
 		return fmt.Errorf("Could not apply sepia effect: %s", self.Error())
