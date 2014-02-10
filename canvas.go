@@ -152,6 +152,8 @@ type Canvas struct {
 	filename string
 	width    string
 	height   string
+
+	quantumRange uint
 }
 
 func init() {
@@ -1019,12 +1021,25 @@ func (self *Canvas) Type() uint {
 func (self *Canvas) SetSepiaTone(threshold float64) error {
 	threshold = math.Max(0.0, threshold)
 	threshold = math.Min(100.0, threshold)
+	threshold = (float64(self.quantumRange) * threshold) / 100.0
 
 	if C.MagickSepiaToneImage(self.wand, C.double(threshold)) == C.MagickFalse {
 		return fmt.Errorf("Could not apply sepia effect: %s", self.Error())
 	}
 
 	return nil
+}
+
+func (self *Canvas) QuantumRange() uint {
+	if self.quantumRange == 0 {
+		var quantumRange C.size_t = 0
+
+		C.GetMagickQuantumRange(&quantumRange)
+
+		self.quantumRange = uint(quantumRange)
+	}
+
+	return self.quantumRange
 }
 
 // Returns a new canvas object.
