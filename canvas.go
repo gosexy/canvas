@@ -46,7 +46,7 @@ import (
 )
 
 // MagickWand constants
-var (
+const (
 	STROKE_BUTT_CAP   = uint(C.ButtCap)
 	STROKE_ROUND_CAP  = uint(C.RoundCap)
 	STROKE_SQUARE_CAP = uint(C.SquareCap)
