@@ -1110,6 +1110,7 @@ func New() *Canvas {
 	self := &Canvas{}
 
 	self.wand = C.NewMagickWand()
+	self.drawing = C.NewDrawingWand()
 
 	self.fg = C.NewPixelWand()
 	self.bg = C.NewPixelWand()
@@ -1117,9 +1118,6 @@ func New() *Canvas {
 	self.fill = C.NewPixelWand()
 	self.stroke = C.NewPixelWand()
 
-	self.drawing = C.NewDrawingWand()
-
-	//self.SetColor("#ffffff")
 	self.SetBackgroundColor("none")
 
 	self.SetStrokeColor("#ffffff")
@@ -1129,7 +1127,6 @@ func New() *Canvas {
 	self.SetStrokeLineCap(STROKE_ROUND_CAP)
 	self.SetStrokeLineJoin(STROKE_ROUND_JOIN)
 
-	//self.SetFillRule(FILL_EVEN_ODD_RULE)
 	self.SetFillColor("#888888")
 
 	return self
