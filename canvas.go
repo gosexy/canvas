@@ -200,6 +200,46 @@ func (self *Canvas) Open(filename string) error {
 	return nil
 }
 
+func (self *Canvas) SetOption(key, value string) error {
+	ckey := C.CString(key)
+	cvalue := C.CString(value)
+
+	defer C.free(unsafe.Pointer(ckey))
+	defer C.free(unsafe.Pointer(cvalue))
+
+	if C.MagickSetOption(self.wand, ckey, cvalue) == C.MagickFalse {
+		return fmt.Errorf(`Could not set option "%s" to "%s": %s`, ckey, cvalue, self.Error())
+	}
+
+	return nil
+}
+
+func (self *Canvas) SetCaption(content string) error {
+	ccontent := C.CString("caption:" + content)
+	defer C.free(unsafe.Pointer(ccontent))
+
+	if C.MagickReadImage(self.wand, ccontent) == C.MagickFalse {
+		return fmt.Errorf(`Could not open image "%s": %s`, content, self.Error())
+	}
+
+	C.MagickDrawImage(self.wand, self.drawing)
+
+	return nil
+}
+
+func (self *Canvas) DrawAnnotation(content string, width, height uint) error {
+	ccontent := C.CString("caption:" + content)
+	defer C.free(unsafe.Pointer(ccontent))
+
+	C.DrawAnnotation(self.drawing, 20, 20, (*C.uchar)(unsafe.Pointer(ccontent)))
+
+	if C.MagickDrawImage(self.wand, self.drawing) == C.MagickFalse {
+		return fmt.Errorf(`Could not draw annotation: %s`, self.Error())
+	}
+
+	return nil
+}
+
 // Reads an image or image sequence from a blob.
 func (self *Canvas) OpenBlob(blob []byte, length uint) error {
 	status := C.MagickReadImageBlob(self.wand, unsafe.Pointer(&blob[0]), C.size_t(length))
@@ -889,6 +929,14 @@ func (self *Canvas) Crop(x int, y int, width uint, height uint) error {
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not crop: %s", self.Error())
+	}
+
+	return nil
+}
+
+func (self *Canvas) SetSize(width, height uint) error {
+	if C.MagickSetSize(self.wand, C.size_t(width), C.size_t(height)) == C.MagickFalse {
+		return fmt.Errorf("Could not set size: %s", self.Error())
 	}
 
 	return nil
