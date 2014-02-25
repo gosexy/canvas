@@ -119,6 +119,18 @@ const (
 	GIF_INTERLACE       = uint(C.GIFInterlace)
 	JPEG_INTERLACE      = uint(C.JPEGInterlace)
 	PNG_INTERLACE       = uint(C.PNGInterlace)
+
+	UNDEFINED_GRAVITY  = uint(C.UndefinedGravity)
+	FORGET_GRAVITY     = uint(C.ForgetGravity)
+	NORTH_WEST_GRAVITY = uint(C.NorthWestGravity)
+	NORTH_GRAVITY      = uint(C.NorthGravity)
+	NORTH_EAST_GRAVITY = uint(C.NorthEastGravity)
+	WEST_GRAVITY       = uint(C.WestGravity)
+	CENTER_GRAVITY     = uint(C.CenterGravity)
+	EAST_GRAVITY       = uint(C.EastGravity)
+	SOUTH_WEST_GRAVITY = uint(C.SouthWestGravity)
+	SOUTH_GRAVITY      = uint(C.SouthGravity)
+	SOUTH_EAST_GRAVITY = uint(C.SouthEastGravity)
 )
 
 // Holds a Canvas object
@@ -1024,6 +1036,25 @@ func (self *Canvas) QuantumRange() uint {
 	}
 
 	return self.quantumRange
+}
+
+func (self *Canvas) SetFontFamily(name string) error {
+	family := C.CString(name)
+	defer C.free(unsafe.Pointer(family))
+
+	if C.MagickSetFont(self.wand, family) == C.MagickFalse {
+		return fmt.Errorf("Could not set font family: %s", self.Error())
+	}
+
+	return nil
+}
+
+func (self *Canvas) SetFontSize(size float64) {
+	C.MagickSetPointsize(self.wand, C.double(size))
+}
+
+func (self *Canvas) SetGravity(gravity uint) {
+	C.MagickSetGravity(self.wand, C.GravityType(gravity))
 }
 
 // Returns a new canvas object.
