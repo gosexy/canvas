@@ -27,7 +27,7 @@ package canvas
 #cgo CFLAGS: -fopenmp -I./_include
 #cgo LDFLAGS: -lMagickWand -lMagickCore
 
-#include <wand/magick_wand.h>
+#include <wand/MagickWand.h>
 
 char *MagickGetPropertyName(char **properties, size_t index) {
   return properties[index];
