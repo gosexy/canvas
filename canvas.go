@@ -1017,6 +1017,10 @@ func (self *Canvas) SetGravity(gravity uint) {
 	C.MagickSetGravity(self.wand, C.GravityType(gravity))
 }
 
+func (self *Canvas) PixelIterator(x, y int, width, height uint) *PixelIterator {
+	return &PixelIterator{iterator: C.NewPixelRegionIterator(self.wand, C.ssize_t(x), C.ssize_t(y), C.size_t(width), C.size_t(height))}
+}
+
 // Returns a new canvas object.
 func New() *Canvas {
 	self := &Canvas{}
