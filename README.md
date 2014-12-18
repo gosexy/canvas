@@ -38,6 +38,7 @@ import "github.com/gosexy/canvas"
 
 func main() {
   img := canvas.New()
+  defer img.Destroy()
 
   // Opening some image from disk.
   err := img.Open("examples/input/example.png")
