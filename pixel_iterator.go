@@ -46,10 +46,10 @@ func (self *PixelIterator) Sync() error {
 func (self *PixelIterator) Error() error {
 	var exception C.ExceptionType
 
-	ptr := C.MagickGetException(self.iterator, &exception)
+	ptr := C.PixelGetIteratorException(self.iterator, &exception)
 	message := C.GoString(ptr)
 
-	C.MagickClearException(self.iterator)
+	C.PixelClearIteratorException(self.iterator)
 	C.MagickRelinquishMemory(unsafe.Pointer(ptr))
 
 	return errors.New(message)
