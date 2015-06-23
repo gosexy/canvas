@@ -1013,21 +1013,6 @@ func (self *Canvas) QuantumRange() uint {
 	return self.quantumRange
 }
 
-func (self *Canvas) SetFontFamily(name string) error {
-	family := C.CString(name)
-	defer C.free(unsafe.Pointer(family))
-
-	if C.MagickSetFont(self.wand, family) == C.MagickFalse {
-		return fmt.Errorf("Could not set font family: %s", self.Error())
-	}
-
-	return nil
-}
-
-func (self *Canvas) SetFontSize(size float64) {
-	C.MagickSetPointsize(self.wand, C.double(size))
-}
-
 func (self *Canvas) SetGravity(gravity uint) {
 	C.MagickSetGravity(self.wand, C.GravityType(gravity))
 }
