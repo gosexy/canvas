@@ -1,4 +1,8 @@
-## gosexy/canvas
+# gosexy/canvas
+
+**This project is currently unmaintained and just kept for historical purposes,
+if you're looking for a better alternative take a look at
+[imagick](https://gowalker.org/github.com/gographics/imagick).**
 
 `gosexy/canvas` is an image processing library for Go that uses ImageMagick's
 MagickWand as backend.
@@ -61,3 +65,9 @@ func main() {
 ## Documentation
 
 See the [online docs](http://godoc.org/github.com/gosexy/canvas).
+
+## Authors
+
+* [José Carlos Nieto](https://github.com/xiam)
+* [Pierre Massat](https://github.com/phacops)
+
