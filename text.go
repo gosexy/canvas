@@ -28,38 +28,38 @@ import (
 type Alignment uint
 
 const (
- 	UndefinedAlign Alignment	= Alignment(C.UndefinedAlign)
-	LeftAlign					= Alignment(C.LeftAlign)
-	CenterAlign					= Alignment(C.CenterAlign)
-	RightAlign					= Alignment(C.RightAlign)
+	UndefinedAlign Alignment = Alignment(C.UndefinedAlign)
+	LeftAlign                = Alignment(C.LeftAlign)
+	CenterAlign              = Alignment(C.CenterAlign)
+	RightAlign               = Alignment(C.RightAlign)
 )
 
 // structure containing all text properties for an annotation
 // except the colors that are defined by FillColor and StrokeColor
 type TextProperties struct {
-	Font		string
-	Family		string
-	Size		float64
+	Font   string
+	Family string
+	Size   float64
 	// Stretch		C.StretchType
-	Weight		uint
+	Weight uint
 	// Style		C.StyleType
 	// Resolution  [2]C.double
-	Alignment	Alignment
-	Antialias	bool
+	Alignment Alignment
+	Antialias bool
 	// Decoration	C.DecorationType
 	// Encoding	string
-	Kerning		float64
+	Kerning float64
 	// Interline	float64
 	// Interword	float64
-	UnderColor	*C.PixelWand
+	UnderColor *C.PixelWand
 }
 
 // Returns a TextProperties structure.
 // Parameters:
-//   read_default: if false, returns an empty structure.
-//				   if true, returns a structure set with current canvas settings
-func (self *Canvas) NewTextProperties(read_default bool) *TextProperties {
-	if read_default == true {
+//   readDefault: if false, returns an empty structure.
+//				  if true, returns a structure set with current canvas settings
+func (self *Canvas) NewTextProperties(readDefault bool) *TextProperties {
+	if readDefault {
 		cfont := C.DrawGetFont(self.drawing)
 		defer C.free(unsafe.Pointer(cfont))
 		cfamily := C.DrawGetFontFamily(self.drawing)
@@ -69,21 +69,18 @@ func (self *Canvas) NewTextProperties(read_default bool) *TextProperties {
 		calignment := C.DrawGetTextAlignment(self.drawing)
 		cantialias := C.DrawGetTextAntialias(self.drawing)
 		ckerning := C.DrawGetTextKerning(self.drawing)
-		antialias := false
-		if cantialias == C.MagickTrue {
-			antialias = true
-		}
+		antialias := cantialias == C.MagickTrue
 
-		underColor :=C.NewPixelWand()
+		underColor := C.NewPixelWand()
 		C.DrawGetTextUnderColor(self.drawing, underColor)
 		return &TextProperties{
-			Font: C.GoString(cfont),
-			Family: C.GoString(cfamily),
-			Size: float64(csize),
-			Weight: uint(cweight),
-			Alignment: Alignment(calignment),
-			Antialias: antialias,
-			Kerning: float64(ckerning),
+			Font:       C.GoString(cfont),
+			Family:     C.GoString(cfamily),
+			Size:       float64(csize),
+			Weight:     uint(cweight),
+			Alignment:  Alignment(calignment),
+			Antialias:  antialias,
+			Kerning:    float64(ckerning),
 			UnderColor: underColor,
 		}
 	}
@@ -132,7 +129,7 @@ func (self *Canvas) SetFontFamily(family string) {
 	self.text.Family = family
 	cfamily := C.CString(family)
 	defer C.free(unsafe.Pointer(cfamily))
-	C.DrawSetFontFamily(self.drawing, cfamily)	
+	C.DrawSetFontFamily(self.drawing, cfamily)
 }
 
 // Returns canvas' current font family
@@ -143,7 +140,7 @@ func (self *Canvas) FontFamily() string {
 // Sets canvas' default font size
 func (self *Canvas) SetFontSize(size float64) {
 	self.text.Size = size
-	C.DrawSetFontSize(self.drawing, C.double(size))		
+	C.DrawSetFontSize(self.drawing, C.double(size))
 }
 
 // Returns canvas' current font size
@@ -154,14 +151,13 @@ func (self *Canvas) FontSize() float64 {
 // Sets canvas' default font weight
 func (self *Canvas) SetFontWeight(weight uint) {
 	self.text.Weight = weight
-	C.DrawSetFontWeight(self.drawing, C.size_t(weight))		
+	C.DrawSetFontWeight(self.drawing, C.size_t(weight))
 }
 
 // Returns canvas' current font weight
 func (self *Canvas) FontWeight() uint {
 	return self.text.Weight
 }
-
 
 // Sets canvas' font name and size.
 // If font is 0-length, the current font family is not changed

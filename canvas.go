@@ -788,6 +788,11 @@ func (self *Canvas) Destroy() error {
 		self.wand = nil
 	}
 
+	if self.text != nil && self.text.UnderColor != nil {
+		C.DestroyPixelWand(self.text.UnderColor)
+		self.text.UnderColor = nil
+	}
+
 	return nil
 }
 
