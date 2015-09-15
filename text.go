@@ -221,12 +221,8 @@ func (self *Canvas) Annotate(text string, x, y float64) {
 // Draws a string at the specified coordinates and using the specified Text Properties
 // Does not modify the canvas' default TextProperties
 func (self *Canvas) AnnotateWithProperties(text string, x, y float64, prop *TextProperties) {
-	if prop != nil {
-		tmp := self.TextProperties()
-		self.SetTextProperties(prop)
-		self.Annotate(text, x, y)
-		self.SetTextProperties(tmp)
-	} else {
-		self.Annotate(text, x, y)
-	}
+	tmp := self.TextProperties()
+	self.SetTextProperties(prop)
+	self.Annotate(text, x, y)
+	self.SetTextProperties(tmp)
 }
