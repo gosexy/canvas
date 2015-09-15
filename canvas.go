@@ -402,7 +402,7 @@ func (self *Canvas) thumbnail(width uint, height uint, ratio float64) error {
 
 // Puts a canvas on top of the current one.
 func (self *Canvas) AppendCanvas(source *Canvas, x int, y int) error {
-	success := C.MagickCompositeImage(self.wand, source.wand, C.SrcOverCompositeOp, C.ssize_t(x), C.ssize_t(y))
+	success := C.MagickCompositeImage(self.wand, source.wand, C.OverCompositeOp, C.ssize_t(x), C.ssize_t(y))
 
 	if success == C.MagickFalse {
 		return fmt.Errorf("Could not append image: %s", self.Error())
