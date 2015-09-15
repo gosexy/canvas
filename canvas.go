@@ -62,6 +62,8 @@ type Canvas struct {
 	height   string
 
 	quantumRange uint
+
+	text *TextProperties
 }
 
 func init() {
@@ -346,16 +348,31 @@ func (self *Canvas) Thumbnail(width uint, height uint) error {
 
 	ratio = math.Min(float64(self.Width())/float64(width), float64(self.Height())/float64(height))
 
+	return self.thumbnail(width, height, ratio)
+}
+
+// Creates a thumbnail that fits within the given dimensions
+func (self *Canvas) Fit(width uint, height uint) error {
+
+	var ratio float64
+
+	// Normalizing image.
+
+	ratio = math.Max(float64(self.Width())/float64(width), float64(self.Height())/float64(height))
+
+	return self.thumbnail(width, height, ratio)
+}
+
+func (self *Canvas) thumbnail(width uint, height uint, ratio float64) error {
+
 	if ratio < 1.0 {
 		// Origin image is smaller than the thumbnail image.
-		max := uint(math.Max(float64(width), float64(height)))
-
 		// Empty replacement buffer with transparent background.
 		replacement := New()
 
 		replacement.SetBackgroundColor("none")
 
-		replacement.Blank(max, max)
+		replacement.Blank(width, height)
 
 		// Putting original image in the center of the replacement canvas.
 		replacement.AppendCanvas(self, int(int(width-self.Width())/2), int(int(height-self.Height())/2))
@@ -539,16 +556,14 @@ func (self *Canvas) Quality() uint {
 	return uint(C.MagickGetImageCompressionQuality(self.wand))
 }
 
-/*
 // Sets canvas's foreground color.
-func (self *Canvas) SetColor(color string) (bool) {
-  status := C.PixelSetColor(self.fg, C.CString(color))
-  if status == C.MagickFalse {
-    return false
-  }
-  return true
+func (self *Canvas) SetColor(color string) bool {
+	status := C.PixelSetColor(self.fg, C.CString(color))
+	if status == C.MagickFalse {
+		return false
+	}
+	return true
 }
-*/
 
 // Sets canvas' background color.
 func (self *Canvas) SetBackgroundColor(color string) error {
@@ -771,6 +786,11 @@ func (self *Canvas) Destroy() error {
 	} else {
 		C.DestroyMagickWand(self.wand)
 		self.wand = nil
+	}
+
+	if self.text != nil && self.text.UnderColor != nil {
+		C.DestroyPixelWand(self.text.UnderColor)
+		self.text.UnderColor = nil
 	}
 
 	return nil
@@ -998,21 +1018,6 @@ func (self *Canvas) QuantumRange() uint {
 	return self.quantumRange
 }
 
-func (self *Canvas) SetFontFamily(name string) error {
-	family := C.CString(name)
-	defer C.free(unsafe.Pointer(family))
-
-	if C.MagickSetFont(self.wand, family) == C.MagickFalse {
-		return fmt.Errorf("Could not set font family: %s", self.Error())
-	}
-
-	return nil
-}
-
-func (self *Canvas) SetFontSize(size float64) {
-	C.MagickSetPointsize(self.wand, C.double(size))
-}
-
 func (self *Canvas) SetGravity(gravity uint) {
 	C.MagickSetGravity(self.wand, C.GravityType(gravity))
 }
@@ -1044,6 +1049,8 @@ func New() *Canvas {
 	self.SetStrokeLineJoin(STROKE_ROUND_JOIN)
 
 	self.SetFillColor("#888888")
+
+	self.text = self.NewTextProperties(true)
 
 	return self
 }
